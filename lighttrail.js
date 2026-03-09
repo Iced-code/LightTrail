@@ -6,7 +6,6 @@
     return text;
 } */
 
-
 /*
 Creates popup dialog box for comments.
 */
@@ -38,13 +37,14 @@ function makeDialogBox(e, dialogText, sourceElement){
         top: (e.pageY + 10) + "px",
         width: "300px",
         padding: "10px",
+        paddingTop: "25px",
         backgroundColor: "#fff",
         border: "1px solid #ccc",
-        borderBottom: "2px solid rgb(255, 66, 66)",
+        borderBottom: "2px solid rgb(245, 66, 66)",
         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
         borderRadius: "5px",
-        zIndex: "9999",
-        overflow: "hidden"
+        zIndex: "9998",
+        overflow: "hidden",
     });
 
     // --- DRAG LOGIC ---
@@ -115,7 +115,9 @@ function makeDialogBox(e, dialogText, sourceElement){
     */
     const label = document.createElement("div");
     console.log(e.target.tagName.toLowerCase());
-    if(dialogText.length > 15) (dialogText = dialogText.substring(0,15) + "...");
+
+    const numChars = 20;
+    if(dialogText.length > numChars) (dialogText = dialogText.substring(0,numChars) + "...");
     Object.assign(label.style, {
         color: "black",
         marginBottom: "8px",
@@ -193,5 +195,78 @@ document.addEventListener("mousedown", function(e) {
             box.style.display = "none";     // Dialog boxes are hidden when clicked off.
         }
     });
+
+    
+    if(e.target.id !== "displayBoxes"){
+        document.getElementById("displayBoxes").className = "";
+        toggleDisplayBoxesStyle();
+    }
 });
 
+function toggleDisplayBoxesStyle(){
+    const el = document.getElementById("displayBoxes");
+
+    if(el.className === "hiding"){
+        el.className = "";
+        el.style.backgroundColor = "rgb(245, 66, 66)";
+        el.style.border = "2px solid white";
+    }
+    else {
+        el.className = "hiding";
+        el.style.backgroundColor = "white";
+        el.style.border = "2px solid rgb(245, 66, 66)";
+    }
+}
+
+function makeHUD() {
+    var displayBoxes = document.createElement("div");
+    displayBoxes.id = "displayBoxes";
+    /* displayBoxes.className = "hiding"; */
+    
+    /*
+    Dialog box styling.
+    */
+    Object.assign(displayBoxes.style, {
+        position: "fixed",
+        bottom: "20px",
+        right: "20px",
+        zIndex: "10000", /* Higher than the dialog boxes */
+        padding: "20px 20px",
+        backgroundColor: "#fff",
+        color: "white",
+        border: "2px solid rgb(245, 66, 66)",
+        borderRadius: "50px",
+        cursor: "pointer",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+        fontWeight: "bold",
+        /* transition: "transform 0.2s, background-color 0.2s" */
+    });
+
+    displayBoxes.addEventListener("click", () => {
+        const allDialogBoxes = document.querySelectorAll(".dialogBox");
+
+        let display = "initial";
+
+        toggleDisplayBoxesStyle();
+        if(displayBoxes.className === "hiding"){
+            display = "none";
+            /* displayBoxes.className = "";
+            displayBoxes.style.backgroundColor = "rgb(245, 66, 66)";
+            displayBoxes.style.border = "2px solid white"; */
+        }
+        else {
+            display = "initial";
+            /* displayBoxes.className = "hiding";
+            displayBoxes.style.backgroundColor = "white";
+            displayBoxes.style.border = "2px solid rgb(245, 66, 66)"; */
+        }
+
+        allDialogBoxes.forEach(box => {
+            box.style.display = display;
+        });
+    });
+
+    document.body.appendChild(displayBoxes);
+}
+
+makeHUD();
