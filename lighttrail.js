@@ -10,7 +10,6 @@ function getSelectedEl(){
         return commonAncestor;
     }
     return null;
-
     /* var text = "";
     if(typeof window.getSelection != "undefined"){
         text = window.getSelection().toString();
@@ -106,6 +105,30 @@ function getSelectedEl(){
         background-color: rgb(245, 66, 66);
         border: 2px solid white;
     }
+
+    #lt-HUD-window {
+        height: 89%;
+        width: 0px;
+        position: fixed;
+        top: 5px;
+        right: 5px;
+        overflow-x: hidden; /* Disable horizontal scroll */
+        /* padding-top: 60px; */
+
+        display: none;
+        padding: 150px 20px;
+        background-color: white;
+        color: black;
+        border-radius: 15px;
+        cursor: default;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+
+        z-index: 9995;
+    }
+    #lt-HUD.hiding #lt-HUD-window {
+        display: flex;
+        width: 250px;
+    }
     `
 
     document.head.appendChild(style);
@@ -138,10 +161,10 @@ function makeDialogBox(e, dialogText, sourceElement){
         top: (e.pageY + 10) + "px",
     });
 
+
     // --- DRAG LOGIC ---
     let isDragging = false;
     let offsetX, offsetY;
-
     /*
     Start dragging logic
     */
@@ -178,7 +201,7 @@ function makeDialogBox(e, dialogText, sourceElement){
 
 
     /*
-    Close popup button.
+    "Close popup" button.
     */
     const closeBtn = document.createElement("span");
     closeBtn.innerText = "❌";
@@ -192,7 +215,7 @@ function makeDialogBox(e, dialogText, sourceElement){
     Displays what was specifically selected by user.
     */
     const label = document.createElement("div");
-    console.log(e.target.tagName.toLowerCase());
+    // console.log(e.target.tagName.toLowerCase());
 
     const numChars = 20;
     const labelText = dialogText.length > numChars ? dialogText.substring(0,numChars) + "..." : dialogText;
@@ -220,8 +243,7 @@ function makeDialogBox(e, dialogText, sourceElement){
     form.appendChild(inputField);
     form.appendChild(submitBtn);
     form.appendChild(closeBtn);
-
-    // dialogBox.appendChild(closeBtn);
+ 
     dialogBox.appendChild(label);
     dialogBox.appendChild(form);
 
@@ -233,13 +255,12 @@ When mouse unclicked after highlighting, this creates the dialog box and adds it
 */
 document.onmouseup = function(e) {
     if(e.target.closest(".lt-dialog-box")) return;
-    
+        
+    const selectedElement = getSelectedEl();
     const selectedText = window.getSelection().toString().trim();
 
-    console.log(getSelectedEl());
-
     if(selectedText){
-        var dialogBox = makeDialogBox(e, selectedText, e.target);
+        var dialogBox = makeDialogBox(e, selectedText, selectedElement/* e.target */);
         document.body.appendChild(dialogBox);
 
         dialogBox.querySelector("textarea").focus();
@@ -258,8 +279,7 @@ document.addEventListener("mousedown", function(e) {
         // Dialog box is deleted if comment is empty.
         if(!box.contains(e.target) && input.value.trim() === ""){
 
-            if(box.sourceElement){ 
-                box.sourceElement.style.backgroundColor = "";
+            if(box.sourceElement){
                 box.sourceElement.classList.remove("lt-selected-source");
             }
             box.remove();
@@ -276,6 +296,14 @@ document.addEventListener("mousedown", function(e) {
     } */
 });
 
+
+function HUDWindow(){
+    const HUD_window = document.createElement("div");
+    HUD_window.id = "lt-HUD-window";
+    HUD_window.innerText = "Highlight a part of the website to add a comment.";
+
+    return HUD_window;
+}
 
 let boxesVisible = false;
 function makeHUD() {
@@ -302,6 +330,21 @@ function makeHUD() {
         });
     });
 
+    const HUD_window = HUDWindow();
+    /* HUD.addEventListener("click", (e) => {
+        const allDialogBoxes = document.querySelectorAll(".lt-dialog-box");
+
+        allDialogBoxes.forEach(box => {
+            const input = box.querySelector(".lt-dialog-input");
+
+            let p = document.createElement("p");
+            p.innerText = input.value.trim();
+            
+            HUD_window.appendChild(p);
+        });
+    }); */
+
+    HUD.appendChild(HUD_window);  // MUST CHANGE!! CLICKING ON HUD_WINDOW HIDES HUD (because clicking on HUD). prob as own element in body, not HUD.
     document.body.appendChild(HUD);
 }
 
