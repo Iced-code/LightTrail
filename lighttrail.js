@@ -1,17 +1,122 @@
-/* function getSelectedText(){
-    var text = "";
+function getSelectedEl(){
+    const selection = window.getSelection();
+    if(selection.rangeCount > 0){
+        const commonAncestor = selection.getRangeAt(0).commonAncestorContainer;
+
+        if(commonAncestor.nodeType === Node.TEXT_NODE){
+            return commonAncestor.parentNode;
+        }
+
+        return commonAncestor;
+    }
+    return null;
+
+    /* var text = "";
     if(typeof window.getSelection != "undefined"){
         text = window.getSelection().toString();
     }
-    return text;
-} */
+    return text; */
+}
+
+(function injectStyles() {
+    const style = document.createElement("style");
+    style.textContent = `
+    .lt-selected-source {
+        background-color: rgba(245, 66, 66, 0.3);
+    }
+    
+    .lt-dialog-box {
+        position: absolute;
+        width: 300px;
+        padding: 10px;
+        padding-top: 25px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-bottom: 4px solid rgb(245, 66, 66);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border-radius: 5px;
+        z-index: 9999;
+        overflow: hidden;
+
+        user-select: none;
+    }
+
+    .lt-label {
+        color: black;
+        margin-bottom: 8px;
+        font-size: 16px;
+        font-style: italic;
+        text-align: left
+    }
+
+    .lt-close-button {
+        color: red;
+        float: right;
+        cursor: default;
+
+        padding: 1px;
+        border-radius: 4px;
+    }
+    .lt-close-button:hover {
+        background-color: rgb(181, 181, 181);
+    }
+
+    .lt-dialog-input {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 4px;
+        field-sizing: content;
+        padding: 4px;
+    }
+
+    .lt-submit-button {
+        background-color: white;
+        color: black;
+        padding: 3px 12px;
+        border-radius: 4px;
+
+        transition: background-color 0.2s;
+    }
+    .lt-submit-button:hover {
+        background-color: rgb(181, 181, 181);
+    }
+
+    #lt-HUD {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 10000;
+        padding: 8px 18px;
+        border-radius: 50px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        
+        font-size: 35px;
+        font-weight: bold;
+
+        background-color: #fff;
+        color: black;
+        border: 2px solid rgb(245, 66, 66);
+
+        transition: background-color 0.5s;
+
+        user-select: none;
+    }
+    #lt-HUD.hiding {
+        background-color: rgb(245, 66, 66);
+        border: 2px solid white;
+    }
+    `
+
+    document.head.appendChild(style);
+})();
 
 /*
 Creates popup dialog box for comments.
 */
 function makeDialogBox(e, dialogText, sourceElement){
     var dialogBox = document.createElement("div");
-    dialogBox.className = "dialogBox";
+    dialogBox.className = "lt-dialog-box";
 
     /*
     Marks selected element's source element.
@@ -19,10 +124,7 @@ function makeDialogBox(e, dialogText, sourceElement){
     connected dialog box.
     */
     dialogBox.sourceElement = sourceElement;
-    sourceElement.classList.add("selected-source");
-    Object.assign(sourceElement.style, {
-        backgroundColor: "rgba(245, 66, 66, 0.3)",
-    })
+    sourceElement.classList.add("lt-selected-source");
     // Clicking the source element will unhide its dialog box.
     sourceElement.addEventListener("click", () => {
         dialogBox.style.display = "initial";
@@ -32,19 +134,8 @@ function makeDialogBox(e, dialogText, sourceElement){
     Dialog box styling.
     */
     Object.assign(dialogBox.style, {
-        position: "absolute",
         left: e.pageX + "px",
         top: (e.pageY + 10) + "px",
-        width: "300px",
-        padding: "10px",
-        paddingTop: "25px",
-        backgroundColor: "#fff",
-        border: "1px solid #ccc",
-        borderBottom: "2px solid rgb(245, 66, 66)",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        borderRadius: "5px",
-        zIndex: "9998",
-        overflow: "hidden",
     });
 
     // --- DRAG LOGIC ---
@@ -55,7 +146,7 @@ function makeDialogBox(e, dialogText, sourceElement){
     Start dragging logic
     */
     dialogBox.addEventListener("mousedown", (e) => {
-        if(e.target.tagName === "TEXTAREA" || e.target.tagName === "SPAN") return;  // so these elements can still function. 
+        if(e.target.tagName === "TEXTAREA" || e.target.tagName === "SPAN" || e.target.tagName === "BUTTON") return;  // so these elements can still function. 
 
         isDragging = true;
         dialogBox.style.cursor = "grabbing";
@@ -82,7 +173,6 @@ function makeDialogBox(e, dialogText, sourceElement){
     document.addEventListener("mouseup", () => {
         isDragging = false;
         dialogBox.style.cursor = "auto";
-
         dialogBox.style.opacity = "100%";
     });
 
@@ -92,21 +182,9 @@ function makeDialogBox(e, dialogText, sourceElement){
     */
     const closeBtn = document.createElement("span");
     closeBtn.innerText = "❌";
-    Object.assign(closeBtn.style, {
-        color: "red",
-        float: "right",
-        cursor: "pointer",
-        fontWeight: "bold"
-    });
-    closeBtn.addEventListener("mouseover", () => {
-        closeBtn.style.backgroundColor = "gray"
-    });
-    closeBtn.addEventListener("mouseout", () => {
-        closeBtn.style.backgroundColor = ""
-    });    
+    closeBtn.className = "lt-close-button";
     closeBtn.addEventListener("click", () => {
-        sourceElement.classList.remove("selected-source");
-        sourceElement.style.backgroundColor = "";
+        sourceElement.classList.remove("lt-selected-source");
         dialogBox.remove();
     });
 
@@ -117,15 +195,9 @@ function makeDialogBox(e, dialogText, sourceElement){
     console.log(e.target.tagName.toLowerCase());
 
     const numChars = 20;
-    if(dialogText.length > numChars) (dialogText = dialogText.substring(0,numChars) + "...");
-    Object.assign(label.style, {
-        color: "black",
-        marginBottom: "8px",
-        fontSize: "16px",
-        fontStyle: "italic",
-        textAlign: "left"
-    });
-    label.innerHTML = `<strong>Selected: </strong><span style="color:red;">"${dialogText}"</span>`;
+    const labelText = dialogText.length > numChars ? dialogText.substring(0,numChars) + "..." : dialogText;
+    label.className = "lt-label";
+    label.innerHTML = `<strong>Selected: </strong>"<span style="color:red;">${labelText}</span>"`;
     
     /*
     Form (Input field and submit button) for comments.
@@ -133,25 +205,24 @@ function makeDialogBox(e, dialogText, sourceElement){
     const form = document.createElement("form");
 
     const inputField = document.createElement("textarea");
-    inputField.className = "dialogInput";
+    inputField.className = "lt-dialog-input";
     inputField.placeholder = "Type here...";
     inputField.name = "comment";
-    Object.assign(inputField.style, {
-        width: "100%",
-        boxSizing: "border-box",
-        borderRadius: "4px",
-        fieldSizing: "content",
-        padding: '4px'
-    });
+
     const submitBtn = document.createElement("button");
+    submitBtn.className = "lt-submit-button";
     submitBtn.type = "submit";
+    submitBtn.innerText = "Add";
+    submitBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+    });
 
     form.appendChild(inputField);
     form.appendChild(submitBtn);
-    
-    dialogBox.appendChild(closeBtn);
+    form.appendChild(closeBtn);
+
+    // dialogBox.appendChild(closeBtn);
     dialogBox.appendChild(label);
-    dialogBox.appendChild(inputField);
     dialogBox.appendChild(form);
 
     return dialogBox;
@@ -161,9 +232,11 @@ function makeDialogBox(e, dialogText, sourceElement){
 When mouse unclicked after highlighting, this creates the dialog box and adds it to the website.
 */
 document.onmouseup = function(e) {
-    if(e.target.closest(".dialogBox")) return;
+    if(e.target.closest(".lt-dialog-box")) return;
     
     const selectedText = window.getSelection().toString().trim();
+
+    console.log(getSelectedEl());
 
     if(selectedText){
         var dialogBox = makeDialogBox(e, selectedText, e.target);
@@ -177,88 +250,51 @@ document.onmouseup = function(e) {
 When mouse clicked outside of the dialog box.
 */
 document.addEventListener("mousedown", function(e) {
-    const allDialogBoxes = document.querySelectorAll(".dialogBox");
+    const allDialogBoxes = document.querySelectorAll(".lt-dialog-box");
 
     allDialogBoxes.forEach(box => {
-        const input = box.querySelector(".dialogInput");
+        const input = box.querySelector(".lt-dialog-input");
 
         // Dialog box is deleted if comment is empty.
         if(!box.contains(e.target) && input.value.trim() === ""){
 
             if(box.sourceElement){ 
                 box.sourceElement.style.backgroundColor = "";
-                box.sourceElement.classList.remove("selected-source");
+                box.sourceElement.classList.remove("lt-selected-source");
             }
             box.remove();
         }
-        else if(!box.contains(e.target)){   
+        else if(!box.contains(e.target) && !document.getElementById("lt-HUD").classList.contains("hiding")){   
             box.style.display = "none";     // Dialog boxes are hidden when clicked off.
         }
     });
 
     
-    if(e.target.id !== "displayBoxes"){
-        document.getElementById("displayBoxes").className = "";
-        toggleDisplayBoxesStyle();
-    }
+    /* if(e.target.id !== "lt-HUD"){
+        boxesVisible = !boxesVisible;
+        document.getElementById("lt-HUD").classList.toggle("hiding", boxesVisible);
+    } */
 });
 
-function toggleDisplayBoxesStyle(){
-    const el = document.getElementById("displayBoxes");
 
-    if(el.className === "hiding"){
-        el.className = "";
-        el.style.backgroundColor = "rgb(245, 66, 66)";
-        el.style.border = "2px solid white";
-    }
-    else {
-        el.className = "hiding";
-        el.style.backgroundColor = "white";
-        el.style.border = "2px solid rgb(245, 66, 66)";
-    }
-}
-
+let boxesVisible = false;
 function makeHUD() {
-    var displayBoxes = document.createElement("div");
-    displayBoxes.id = "displayBoxes";
-    /* displayBoxes.className = "hiding"; */
-    
-    /*
-    Dialog box styling.
-    */
-    Object.assign(displayBoxes.style, {
-        position: "fixed",
-        bottom: "20px",
-        right: "20px",
-        zIndex: "10000", /* Higher than the dialog boxes */
-        padding: "20px 20px",
-        backgroundColor: "#fff",
-        color: "white",
-        border: "2px solid rgb(245, 66, 66)",
-        borderRadius: "50px",
-        cursor: "pointer",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-        fontWeight: "bold",
-        /* transition: "transform 0.2s, background-color 0.2s" */
-    });
+    const HUD = document.createElement("div");
+    HUD.id = "lt-HUD";
+    HUD.innerText = "☰";
 
-    displayBoxes.addEventListener("click", () => {
-        const allDialogBoxes = document.querySelectorAll(".dialogBox");
+    HUD.addEventListener("click", (e) => {
+        const allDialogBoxes = document.querySelectorAll(".lt-dialog-box");
 
         let display = "initial";
 
-        toggleDisplayBoxesStyle();
-        if(displayBoxes.className === "hiding"){
-            display = "none";
-            /* displayBoxes.className = "";
-            displayBoxes.style.backgroundColor = "rgb(245, 66, 66)";
-            displayBoxes.style.border = "2px solid white"; */
+        boxesVisible = !boxesVisible;
+        HUD.classList.toggle("hiding", boxesVisible);
+        if(boxesVisible){
+            display = "initial";
         }
         else {
-            display = "initial";
-            /* displayBoxes.className = "hiding";
-            displayBoxes.style.backgroundColor = "white";
-            displayBoxes.style.border = "2px solid rgb(245, 66, 66)"; */
+            display = "none";
         }
 
         allDialogBoxes.forEach(box => {
@@ -266,7 +302,7 @@ function makeHUD() {
         });
     });
 
-    document.body.appendChild(displayBoxes);
+    document.body.appendChild(HUD);
 }
 
 makeHUD();
