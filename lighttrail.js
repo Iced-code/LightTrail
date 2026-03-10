@@ -159,6 +159,7 @@ function makeDialogBox(e, dialogText, sourceElement){
     Object.assign(dialogBox.style, {
         left: e.pageX + "px",
         top: (e.pageY + 10) + "px",
+        /* zIndex: (sourceElement.zIndex) + 1, */
     });
 
 
@@ -215,12 +216,16 @@ function makeDialogBox(e, dialogText, sourceElement){
     Displays what was specifically selected by user.
     */
     const label = document.createElement("div");
-    // console.log(e.target.tagName.toLowerCase());
 
     const numChars = 20;
     const labelText = dialogText.length > numChars ? dialogText.substring(0,numChars) + "..." : dialogText;
     label.className = "lt-label";
-    label.innerHTML = `<strong>Selected: </strong>"<span style="color:red;">${labelText}</span>"`;
+
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+    label.innerHTML = `<strong>Selected: </strong>"<span style="color:red;">${labelText}</span>"`;  // <br>${hours}:${minutes}:${seconds}
     
     /*
     Form (Input field and submit button) for comments.
@@ -260,7 +265,7 @@ document.onmouseup = function(e) {
     const selectedText = window.getSelection().toString().trim();
 
     if(selectedText){
-        var dialogBox = makeDialogBox(e, selectedText, selectedElement/* e.target */);
+        var dialogBox = makeDialogBox(e, selectedText, selectedElement);
         document.body.appendChild(dialogBox);
 
         dialogBox.querySelector("textarea").focus();
@@ -276,16 +281,25 @@ document.addEventListener("mousedown", function(e) {
     allDialogBoxes.forEach(box => {
         const input = box.querySelector(".lt-dialog-input");
 
-        // Dialog box is deleted if comment is empty.
-        if(!box.contains(e.target) && input.value.trim() === ""){
+        try {
+            // Dialog box is deleted if comment is empty.
+            if(!box.contains(e.target) && input.value.trim() === ""){
 
-            if(box.sourceElement){
-                box.sourceElement.classList.remove("lt-selected-source");
+                if(box.sourceElement){
+                    box.sourceElement.classList.remove("lt-selected-source");
+                }
+                box.remove();
             }
-            box.remove();
+            else if(
+                    !box.contains(e.target) && 
+                    !(e.target.classList.contains("lt-selected-source") || e.target.closest(".lt-dialog-box")) &&
+                    !document.getElementById("lt-HUD").classList.contains("hiding"))
+                {   
+                box.style.display = "none";     // Dialog boxes are hidden when clicked off.
+            }
         }
-        else if(!box.contains(e.target) && !document.getElementById("lt-HUD").classList.contains("hiding")){   
-            box.style.display = "none";     // Dialog boxes are hidden when clicked off.
+        catch (TypeError) {
+            box.style.display = "none";
         }
     });
 
