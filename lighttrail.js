@@ -293,8 +293,9 @@ document.addEventListener("mousedown", function(e) {
             else if(
                     !box.contains(e.target) && 
                     !(e.target.classList.contains("lt-selected-source") || e.target.closest(".lt-dialog-box")) &&
-                    !document.getElementById("lt-HUD").classList.contains("hiding"))
-                {   
+                    !document.getElementById("lt-HUD").classList.contains("hiding")
+                )
+            {   
                 box.style.display = "none";     // Dialog boxes are hidden when clicked off.
             }
         }
