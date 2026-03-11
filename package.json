@@ -1,0 +1,28 @@
+{
+  "name": "light_trail",
+  "version": "1.0.0",
+  "description": "<img src=\"LightTrail.png\" alt=\"Screenshot of the project\">",
+  "main": "lighttrail.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Iced-code/LightTrail.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Iced-code/LightTrail/issues"
+  },
+  "homepage": "https://github.com/Iced-code/LightTrail#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "node": "^22.22.1",
+    "nodemon": "^3.1.14",
+    "pg": "^8.20.0"
+  }
+}

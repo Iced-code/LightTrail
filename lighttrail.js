@@ -1,3 +1,6 @@
+/* 
+ *  Gets the parent element of the selected text.
+ */
 function getSelectedEl(){
     const selection = window.getSelection();
     if(selection.rangeCount > 0){
@@ -17,6 +20,9 @@ function getSelectedEl(){
     return text; */
 }
 
+/* 
+ *  Adds the Light Trail styling for comments and HUD.
+ */
 (function injectStyles() {
     const style = document.createElement("style");
     style.textContent = `
@@ -134,10 +140,48 @@ function getSelectedEl(){
     document.head.appendChild(style);
 })();
 
+/* 
+ *  Gets the DOM path for the element.
+ */
+function getDOMPath(el){
+    if(!el) return null;
+
+    const stack = [];
+
+    while(el.parentNode != null){
+        let siblingCount = 0;
+        let siblingIndex = 0;
+
+        for(let i = 0; i < el.parentNode.children.length; i++){
+            const sibling = el.parentNode.children[i];
+
+            if(sibling.nodeName === el.nodeName){
+                if(sibling === el){
+                    siblingIndex = siblingCount;
+                }
+                siblingCount++;
+            }
+        }
+
+        const nodeName = el.nodeName.toLowerCase();
+
+        if(siblingCount > 1){
+            stack.unshift(`${nodeName}:nth-of-type(${siblingIndex+1})`)
+        }
+        else {
+            stack.unshift(nodeName);
+        }
+
+        el = el.parentNode;
+    }
+
+    return stack.join(" > ");
+}
+
 /*
 Creates popup dialog box for comments.
 */
-function makeDialogBox(e, dialogText, sourceElement){
+function makeDialogBox(e, dialogText="", sourceElement){
     var dialogBox = document.createElement("div");
     dialogBox.className = "lt-dialog-box";
 
@@ -241,8 +285,30 @@ function makeDialogBox(e, dialogText, sourceElement){
     submitBtn.className = "lt-submit-button";
     submitBtn.type = "submit";
     submitBtn.innerText = "Add";
-    submitBtn.addEventListener("click", (e) => {
+    submitBtn.addEventListener("click", async (e) => {
         e.preventDefault();
+
+        const comment = inputField.value.trim();
+        if(!comment) return;
+
+        const domPath = getDOMPath(sourceElement);
+        console.log(domPath);
+        await fetch("/comments", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                page_url: window.location.origin + window.location.pathname, // window.location.href,
+                dom_path: domPath,
+                selected_text: dialogText,
+                comment_text: comment,
+                pos_x: dialogBox.offsetLeft,
+                pos_y: dialogBox.offsetTop
+            })
+        });
+
+        // loadComments();
     });
 
     form.appendChild(inputField);
@@ -363,4 +429,29 @@ function makeHUD() {
     document.body.appendChild(HUD);
 }
 
+
+async function loadComments() {
+    const res = await fetch(
+        "/comments?page_url=" + encodeURIComponent(window.location.origin + window.location.pathname)// encodeURIComponent(window.location.href)
+    );
+
+    const comments = await res.json();
+
+    comments.forEach(c => {
+        const fEvent = {
+            pageX: c.pos_x,
+            pageY: c.pos_y
+        };
+
+        console.log(c);
+        const element = document.querySelector(c.dom_path);
+        const box = makeDialogBox(e=fEvent, dialogText=c.selected_text, sourceElement=element);
+
+        box.querySelector("textarea").value = c.comment_text;
+
+        document.body.appendChild(box);
+    });
+}
+
+loadComments();
 makeHUD();
