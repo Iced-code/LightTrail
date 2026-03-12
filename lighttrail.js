@@ -21,7 +21,7 @@ function getSelectedEl(){
 }
 
 /* 
- *  Adds the Light Trail styling for comments and HUD.
+ *  Adds the LightTrail styling for comments and HUD.
  */
 (function injectStyles() {
     const style = document.createElement("style");
@@ -148,11 +148,15 @@ function getAuthorID(){
     let id = localStorage.getItem("lt-author-id");
     
     if(!id) {
-        id = crypto.randomUUID();
+        try {
+            id = crypto.randomUUID();
+        }
+        catch (err){
+            return "test";
+        }
         localStorage.setItem("lt-author-id", id);
     }
 
-    console.log(id);
     return id;
 }
 
@@ -197,7 +201,7 @@ function getDOMPath(el){
 /*
 Creates popup dialog box for comments.
 */
-function makeDialogBox(e, dialogText="", sourceElement){
+function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     var dialogBox = document.createElement("div");
     dialogBox.className = "lt-dialog-box";
 
@@ -277,7 +281,7 @@ function makeDialogBox(e, dialogText="", sourceElement){
     */
     const label = document.createElement("div");
 
-    const numChars = 20;
+    const numChars = 30;
     const labelText = dialogText.length > numChars ? dialogText.substring(0,numChars) + "..." : dialogText;
     label.className = "lt-label";
     label.innerHTML = `<strong>Selected: </strong>"<span style="color:red;">${labelText}</span>"`;  // <br>${hours}:${minutes}:${seconds}
@@ -296,6 +300,9 @@ function makeDialogBox(e, dialogText="", sourceElement){
     submitBtn.className = "lt-submit-button";
     submitBtn.type = "submit";
     submitBtn.innerText = "Add";
+    /*
+    Saves comment to database.
+    */
     submitBtn.addEventListener("click", async (e) => {
         e.preventDefault();
 
@@ -303,14 +310,14 @@ function makeDialogBox(e, dialogText="", sourceElement){
         if(!comment) return;
 
         const domPath = getDOMPath(sourceElement);
-        console.log(domPath);
-        await fetch("/comments", {
+        //console.log(domPath);
+        const response = await fetch("/comments", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                page_url: window.location.origin + window.location.pathname, // window.location.href,
+                page_url: window.location.origin + window.location.pathname, // url without sections or params
                 dom_path: domPath,
                 selected_text: dialogText,
                 comment_text: comment,
@@ -319,12 +326,20 @@ function makeDialogBox(e, dialogText="", sourceElement){
                 author_id: authorID
             })
         });
+        const saved = await response.json();
+        dialogBox.dataset.commentID = saved.id;
 
         // loadComments();
     });
 
+    if(!userOwns){   
+        dialogBox.classList.add("lt-other-user");
+        inputField.disabled = true;
+    }
     form.appendChild(inputField);
-    form.appendChild(submitBtn);
+    if(userOwns) {
+        form.appendChild(submitBtn);
+    }
     form.appendChild(closeBtn);
  
     dialogBox.appendChild(label);
@@ -441,7 +456,9 @@ function makeHUD() {
     document.body.appendChild(HUD);
 }
 
-
+/* 
+Gets saved comments from database and loads into website.
+*/
 async function loadComments() {
     const res = await fetch(
         "/comments?page_url=" + encodeURIComponent(window.location.origin + window.location.pathname)// encodeURIComponent(window.location.href)
@@ -457,18 +474,14 @@ async function loadComments() {
 
         console.log(c);
         const element = document.querySelector(c.dom_path);
-        const box = makeDialogBox(e=fEvent, dialogText=c.selected_text, sourceElement=element);
+        const box = makeDialogBox(e=fEvent, dialogText=c.selected_text, sourceElement=element, userOwns=(c.author_id === authorID));
 
         box.querySelector("textarea").value = c.comment_text;
-
-        if(c.author_id !== authorID){
-            box.classList.add("lt-other-user");
-        }
 
         document.body.appendChild(box);
     });
 }
 
-const authorID = getAuthorID() || "test";
+const authorID = getAuthorID() /* || "test" */;
 loadComments();
 makeHUD();
