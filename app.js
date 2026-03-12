@@ -56,15 +56,16 @@ app.post('/comments', async (req, res) => {
             selected_text,
             comment_text,
             pos_x,
-            pos_y
+            pos_y,
+            author_id
         } = req.body;
 
         const result = await pool.query(
             `INSERT INTO comments
-            (page_url, dom_path, selected_text, comment_text, pos_x, pos_y)
-            VALUES ($1,$2,$3,$4,$5,$6)
+            (page_url, dom_path, selected_text, comment_text, pos_x, pos_y, author_id)
+            VALUES ($1,$2,$3,$4,$5,$6,$7)
             RETURNING *`,
-            [page_url, dom_path, selected_text, comment_text, pos_x, pos_y]
+            [page_url, dom_path, selected_text, comment_text, pos_x, pos_y, author_id]
         );
 
         console.log(result.rows[0]);
@@ -103,6 +104,7 @@ async function initDB() {
             comment_text TEXT NOT NULL,
             pos_x INTEGER,
             pos_y INTEGER,
+            author_id TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) 
     `);
@@ -111,5 +113,5 @@ async function initDB() {
 
 initDB().then(() => {
     // Starts the server
-    app.listen(port, '0.0.0.0', () => console.log(`Server is running on port ${port}`))
+    app.listen(port, /* '0.0.0.0', */ () => console.log(`Server is running on port ${port}`))
 });

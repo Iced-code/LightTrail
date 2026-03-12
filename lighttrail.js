@@ -46,6 +46,10 @@ function getSelectedEl(){
         user-select: none;
     }
 
+    .lt-other-user.lt-dialog-box {
+        border-bottom: 4px solid rgb(245, 197, 66);
+    }
+
     .lt-label {
         color: black;
         margin-bottom: 8px;
@@ -139,6 +143,18 @@ function getSelectedEl(){
 
     document.head.appendChild(style);
 })();
+
+function getAuthorID(){
+    let id = localStorage.getItem("lt-author-id");
+    
+    if(!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem("lt-author-id", id);
+    }
+
+    console.log(id);
+    return id;
+}
 
 /* 
  *  Gets the DOM path for the element.
@@ -264,11 +280,6 @@ function makeDialogBox(e, dialogText="", sourceElement){
     const numChars = 20;
     const labelText = dialogText.length > numChars ? dialogText.substring(0,numChars) + "..." : dialogText;
     label.className = "lt-label";
-
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const seconds = now.getSeconds();
     label.innerHTML = `<strong>Selected: </strong>"<span style="color:red;">${labelText}</span>"`;  // <br>${hours}:${minutes}:${seconds}
     
     /*
@@ -304,7 +315,8 @@ function makeDialogBox(e, dialogText="", sourceElement){
                 selected_text: dialogText,
                 comment_text: comment,
                 pos_x: dialogBox.offsetLeft,
-                pos_y: dialogBox.offsetTop
+                pos_y: dialogBox.offsetTop,
+                author_id: authorID
             })
         });
 
@@ -449,9 +461,14 @@ async function loadComments() {
 
         box.querySelector("textarea").value = c.comment_text;
 
+        if(c.author_id !== authorID){
+            box.classList.add("lt-other-user");
+        }
+
         document.body.appendChild(box);
     });
 }
 
+const authorID = getAuthorID() || "test";
 loadComments();
 makeHUD();
