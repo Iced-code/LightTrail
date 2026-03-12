@@ -1,30 +1,5 @@
-/* 
- *  Gets the parent element of the selected text.
- */
-function getSelectedEl(){
-    const selection = window.getSelection();
-    if(selection.rangeCount > 0){
-        const commonAncestor = selection.getRangeAt(0).commonAncestorContainer;
 
-        if(commonAncestor.nodeType === Node.TEXT_NODE){
-            return commonAncestor.parentNode;
-        }
-
-        return commonAncestor;
-    }
-    return null;
-    /* var text = "";
-    if(typeof window.getSelection != "undefined"){
-        text = window.getSelection().toString();
-    }
-    return text; */
-}
-
-let topZIndex = 9999;
-function bringToFront(el){
-    topZIndex += 1;
-    el.style.zIndex = String(topZIndex);
-}
+let topZIndex = 9000;
 
 /* 
  *  Adds the LightTrail styling for comments and HUD.
@@ -55,9 +30,6 @@ function bringToFront(el){
     .lt-other-user.lt-dialog-box {
         border-bottom: 4px solid rgb(245, 197, 66);
     }
-    .lt-other-user textarea {
-        resize: none;
-    }   
 
     .lt-label {
         color: black;
@@ -75,6 +47,7 @@ function bringToFront(el){
         border-radius: 4px;
         field-sizing: content;
         padding: 4px;
+        resize: none;
     }
 
     .lt-submit-button {
@@ -88,6 +61,9 @@ function bringToFront(el){
     .lt-submit-button:hover {
         background-color: rgb(181, 181, 181);
     }
+    .lt-dialog-input, .lt-submit-button {
+        font-family: monospace;
+    }
 
     .lt-close-button {
         color: red;
@@ -100,11 +76,7 @@ function bringToFront(el){
     .lt-close-button:hover {
         background-color: rgb(181, 181, 181);
     }
-
-    .lt-dialog-input, .lt-submit-button {
-        font-family: monospace;
-    } 
-
+    
     #lt-HUD {
         position: fixed;
         bottom: 20px;
@@ -158,6 +130,36 @@ function bringToFront(el){
 
     document.head.appendChild(style);
 })();
+
+/* 
+ *  Gets the parent element of the selected text.
+ */
+function getSelectedEl(){
+    const selection = window.getSelection();
+    if(selection.rangeCount > 0){
+        const commonAncestor = selection.getRangeAt(0).commonAncestorContainer;
+
+        if(commonAncestor.nodeType === Node.TEXT_NODE){
+            return commonAncestor.parentNode;
+        }
+
+        return commonAncestor;
+    }
+    return null;
+    /* var text = "";
+    if(typeof window.getSelection != "undefined"){
+        text = window.getSelection().toString();
+    }
+    return text; */
+}
+
+/*
+Passed element is brought to the top of display.
+*/
+function bringToFront(el){
+    topZIndex += 1;
+    el.style.zIndex = String(topZIndex);
+}
 
 function getAuthorID(){
     let id = localStorage.getItem("lt-author-id");
@@ -290,7 +292,6 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     Displays what was specifically selected by user.
     */
     const label = document.createElement("div");
-
     const numChars = 25;
     const labelText = dialogText.length > numChars ? dialogText.substring(0,numChars) + "..." : dialogText;
     label.className = "lt-label";
@@ -321,23 +322,47 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
 
         const domPath = getDOMPath(sourceElement);
         //console.log(domPath);
-        const response = await fetch("/comments", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                page_url: window.location.origin + window.location.pathname, // url without sections or params
-                dom_path: domPath,
-                selected_text: dialogText,
-                comment_text: comment,
-                pos_x: dialogBox.offsetLeft,
-                pos_y: dialogBox.offsetTop,
-                author_id: authorID
-            })
-        });
-        const saved = await response.json();
-        dialogBox.dataset.commentID = saved.id;
+        
+        const commentID = dialogBox.dataset.commentID;
+        if(!commentID){
+            // new comment being added
+            
+            const response = await fetch("/comments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    page_url: window.location.origin + window.location.pathname, // url without sections or params
+                    dom_path: domPath,
+                    selected_text: dialogText,
+                    comment_text: comment,
+                    pos_x: dialogBox.offsetLeft,
+                    pos_y: dialogBox.offsetTop,
+                    author_id: authorID
+                })
+            });
+            const saved = await response.json();
+            dialogBox.dataset.commentID = saved.id;
+        }
+        else {
+            if(comment === ""){  // existing comment made empty, deleting comment box.
+                await fetch(`/comments/${commentID}`, { method: "DELETE" });
+            } 
+            else {  // existing comment being updated.
+                await fetch(`/comments/${commentID}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        comment_text: comment,
+                        pos_x: dialogBox.offsetLeft,
+                        pos_y: dialogBox.offsetTop,
+                    })
+                });
+            }
+        }
 
         // Hides and disables submit and close buttons when comment inputted.
         submitBtn.disabled = true;
@@ -527,6 +552,6 @@ async function loadComments() {
 }
 
 
-const authorID = getAuthorID() /* || "test" */;
+const authorID = getAuthorID();
 loadComments();
 makeHUD();

@@ -45,7 +45,6 @@ app.get('/comments', async (req, res) => {
             [page_url]
         );
 
-        // console.log(result.rows);
         res.json(result.rows);
     } catch (err) {
         console.error("GET /comments:", err);
@@ -80,6 +79,33 @@ app.post('/comments', async (req, res) => {
         res.json(result.rows[0]);
     } catch (err) {
         console.error("POST /comments:", err);
+        res.status(500).send("Server error");
+    }
+});
+
+/*
+Updates comment box info in database.
+*/
+app.post("/comments/:id", async (req, res) => {
+    try{
+        const {
+            comment_text,
+            pos_x,
+            pos_y
+        } = req.body;
+
+        const result = await pool.query(
+            `UPDATE comments
+            SET comment_text=$2, pos_x=$3, pos_y=$4
+            WHERE id=$1
+            RETURNING *`,
+            [req.params.id, comment_text, pos_x, pos_y]
+        );
+
+        console.log(result.rows[0]);
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error("POST /comments/:id", err);
         res.status(500).send("Server error");
     }
 });
