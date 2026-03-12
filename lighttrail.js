@@ -230,6 +230,10 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     // Clicking the source element will unhide its dialog box.
     sourceElement.addEventListener("click", () => {
         dialogBox.style.display = "initial";
+
+        // Displays close button when dialog box's source elment clicked.
+        closeBtn.disabled = false;
+        closeBtn.style.display = "initial";
     });
 
     /*
@@ -238,7 +242,6 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     Object.assign(dialogBox.style, {
         left: e.pageX + "px",
         top: (e.pageY + 10) + "px",
-        /* zIndex: (sourceElement.zIndex) + 1, */
     });
 
 
@@ -250,6 +253,9 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     */
     dialogBox.addEventListener("mousedown", (e) => {
         bringToFront(dialogBox);
+        closeBtn.disabled = false;
+        closeBtn.style.display = "initial";
+
         if(e.target.tagName === "TEXTAREA" || e.target.tagName === "SPAN" || e.target.tagName === "BUTTON") return;  // so these elements can still function. 
 
         isDragging = true;
@@ -303,7 +309,7 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     const submitBtn = document.createElement("button");
     submitBtn.className = "lt-submit-button";
     submitBtn.type = "submit";
-    submitBtn.innerText = "Add";
+    submitBtn.innerText = "Comment";
     /*
     Saves comment to database.
     */
@@ -333,6 +339,13 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
         const saved = await response.json();
         dialogBox.dataset.commentID = saved.id;
 
+        // Hides and disables submit and close buttons when comment inputted.
+        submitBtn.disabled = true;
+        submitBtn.style.display = "none";
+
+        closeBtn.disabled = true;
+        closeBtn.style.display = "none";
+
         // loadComments();
     });
 
@@ -355,9 +368,17 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     });
 
 
+    /// If the comment is from someone other than the user, its styled accordingly and its input field is uneditable.
     if(!userOwns){   
         dialogBox.classList.add("lt-other-user");
         inputField.disabled = true;
+    }
+    else {
+        // submit button is enabled and displayed when the input is changed.
+        inputField.addEventListener("input", () => {
+            submitBtn.disabled = false;
+            submitBtn.style.display = "initial";
+        });
     }
     form.appendChild(inputField);
     if(userOwns) {
@@ -406,13 +427,13 @@ document.addEventListener("mousedown", function(e) {
                 }
                 box.remove();
             }
-            else if(
+            else if (
                     !box.contains(e.target) && 
                     !(e.target.classList.contains("lt-selected-source") || e.target.closest(".lt-dialog-box")) &&
                     !document.getElementById("lt-HUD").classList.contains("hiding")
                 )
             {   
-                box.style.display = "none";     // Dialog boxes are hidden when clicked off.
+                box.style.display = "none";  // Dialog boxes are hidden when clicked off.
             }
         }
         catch (TypeError) {
