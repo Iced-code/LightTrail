@@ -20,6 +20,12 @@ function getSelectedEl(){
     return text; */
 }
 
+let topZIndex = 9999;
+function bringToFront(el){
+    topZIndex += 1;
+    el.style.zIndex = String(topZIndex);
+}
+
 /* 
  *  Adds the LightTrail styling for comments and HUD.
  */
@@ -40,7 +46,7 @@ function getSelectedEl(){
         border-bottom: 4px solid rgb(245, 66, 66);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         border-radius: 5px;
-        z-index: 9999;
+        z-index: ${topZIndex};
         overflow: hidden;
 
         user-select: none;
@@ -49,25 +55,18 @@ function getSelectedEl(){
     .lt-other-user.lt-dialog-box {
         border-bottom: 4px solid rgb(245, 197, 66);
     }
+    .lt-other-user textarea {
+        resize: none;
+    }   
 
     .lt-label {
         color: black;
         margin-bottom: 8px;
         font-size: 16px;
         font-style: italic;
-        text-align: left
-    }
+        text-align: left;
 
-    .lt-close-button {
-        color: red;
-        float: right;
-        cursor: default;
-
-        padding: 1px;
-        border-radius: 4px;
-    }
-    .lt-close-button:hover {
-        background-color: rgb(181, 181, 181);
+        font-family: 'Jost', sans-serif;
     }
 
     .lt-dialog-input {
@@ -90,11 +89,27 @@ function getSelectedEl(){
         background-color: rgb(181, 181, 181);
     }
 
+    .lt-close-button {
+        color: red;
+        float: right;
+        cursor: default;
+
+        padding: 1px;
+        border-radius: 4px;
+    }
+    .lt-close-button:hover {
+        background-color: rgb(181, 181, 181);
+    }
+
+    .lt-dialog-input, .lt-submit-button {
+        font-family: monospace;
+    } 
+
     #lt-HUD {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        z-index: 10000;
+        z-index: ${topZIndex};
         padding: 8px 18px;
         border-radius: 50px;
         cursor: pointer;
@@ -133,7 +148,7 @@ function getSelectedEl(){
         cursor: default;
         box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 
-        z-index: 9995;
+        z-index: ${topZIndex};
     }
     #lt-HUD.hiding #lt-HUD-window {
         display: flex;
@@ -234,6 +249,7 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     Start dragging logic
     */
     dialogBox.addEventListener("mousedown", (e) => {
+        bringToFront(dialogBox);
         if(e.target.tagName === "TEXTAREA" || e.target.tagName === "SPAN" || e.target.tagName === "BUTTON") return;  // so these elements can still function. 
 
         isDragging = true;
@@ -264,24 +280,12 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
         dialogBox.style.opacity = "100%";
     });
 
-
-    /*
-    "Close popup" button.
-    */
-    const closeBtn = document.createElement("span");
-    closeBtn.innerText = "❌";
-    closeBtn.className = "lt-close-button";
-    closeBtn.addEventListener("click", () => {
-        sourceElement.classList.remove("lt-selected-source");
-        dialogBox.remove();
-    });
-
     /*
     Displays what was specifically selected by user.
     */
     const label = document.createElement("div");
 
-    const numChars = 30;
+    const numChars = 25;
     const labelText = dialogText.length > numChars ? dialogText.substring(0,numChars) + "..." : dialogText;
     label.className = "lt-label";
     label.innerHTML = `<strong>Selected: </strong>"<span style="color:red;">${labelText}</span>"`;  // <br>${hours}:${minutes}:${seconds}
@@ -331,6 +335,25 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
 
         // loadComments();
     });
+
+    /*
+    "Close popup" button.
+    */
+    const closeBtn = document.createElement("span");
+    closeBtn.innerText = "❌";
+    closeBtn.className = "lt-close-button";
+    closeBtn.addEventListener("click", async () => {
+        
+        const commentID = dialogBox.dataset.commentID;
+        if(commentID) {
+            await fetch(`/comments/${commentID}`, { method: "DELETE" });
+        }
+
+        sourceElement.classList.remove("lt-selected-source");
+        dialogBox.remove();
+        //loadComments();
+    });
+
 
     if(!userOwns){   
         dialogBox.classList.add("lt-other-user");
@@ -475,12 +498,13 @@ async function loadComments() {
         console.log(c);
         const element = document.querySelector(c.dom_path);
         const box = makeDialogBox(e=fEvent, dialogText=c.selected_text, sourceElement=element, userOwns=(c.author_id === authorID));
-
+        box.dataset.commentID = c.id;
         box.querySelector("textarea").value = c.comment_text;
 
         document.body.appendChild(box);
     });
 }
+
 
 const authorID = getAuthorID() /* || "test" */;
 loadComments();

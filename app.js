@@ -13,6 +13,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
+/*
+Used for testing local HTML files. Likely remove before publishing.
+*/
 app.use(express.static(path.join(__dirname)));
 app.use(express.static(path.join(__dirname, "testSites")));
 
@@ -20,7 +23,6 @@ app.use(express.static(path.join(__dirname, "testSites")));
 app.get('/', (req, res) => {
     res.send("Hello world! My first NodeJS Express app.")
 });
-
 app.get('/status', (req, res) => {
     const output = {
         message: "testing",
@@ -30,14 +32,17 @@ app.get('/status', (req, res) => {
     res.json(output);
 });
 
+/*
+Gets all comments for the specified page_url.
+*/
 app.get('/comments', async (req, res) => {
     try{
         const { page_url } = req.query;
 
         const result = await pool.query(
-            'SELECT * FROM comments',
-            /* 'SELECT * FROM comments WHERE page_url = $1',
-            [page_url] */
+            //'SELECT * FROM comments',
+            `SELECT * FROM comments WHERE page_url = $1`,
+            [page_url]
         );
 
         // console.log(result.rows);
@@ -48,6 +53,9 @@ app.get('/comments', async (req, res) => {
     }
 });
 
+/*
+Saves comment box info to database.
+*/
 app.post('/comments', async (req, res) => {
     try{
         const { 
@@ -76,6 +84,9 @@ app.post('/comments', async (req, res) => {
     }
 });
 
+/*
+Deletes comment box from database. 
+*/
 app.delete("/comments/:id", async (req, res) => {
     try{
         const result = await pool.query(
@@ -93,7 +104,9 @@ app.delete("/comments/:id", async (req, res) => {
     }
 });
 
-
+/*
+Initializes 'comments' table in database if does not already exist.
+*/
 async function initDB() {
     await pool.query(`
         CREATE TABLE IF NOT exists comments (
