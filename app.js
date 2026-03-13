@@ -23,6 +23,10 @@ app.use(express.json());
 /* app.use(express.static(path.join(__dirname)));
 app.use(express.static(path.join(__dirname, "testSites"))); */
 
+
+/*
+broadcasts message for websocket.
+*/
 function broadcast(data){
     const message = JSON.stringify(data);
     wss.clients.forEach(client => {
@@ -36,7 +40,9 @@ wss.on('connection', (ws) => {
     ws.on('close', () => console.log('WebSocket client disconnected.'))
 });
 
-
+/*
+Base test routes.
+*/
 app.get('/', (req, res) => {
     res.send("Hello world! My first NodeJS Express app.")
 });

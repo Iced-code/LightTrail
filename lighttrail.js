@@ -379,7 +379,6 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
         const commentID = dialogBox.dataset.commentID;
         if(!commentID){
             // new comment being added
-            
             const response = await fetch("http://localhost:3000/comments", {
                 method: "POST",
                 headers: {
@@ -594,7 +593,6 @@ async function loadComments() {
             pageY: c.pos_y
         };
 
-        console.log(c);
         const element = document.querySelector(c.dom_path);
         const box = makeDialogBox(e=fEvent, dialogText=c.selected_text, sourceElement=element, userOwns=(c.author_id === authorID));
         box.dataset.commentID = c.id;
