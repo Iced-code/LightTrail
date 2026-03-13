@@ -36,6 +36,7 @@ wss.on('connection', (ws) => {
     ws.on('close', () => console.log('WebSocket client disconnected.'))
 });
 
+
 app.get('/', (req, res) => {
     res.send("Hello world! My first NodeJS Express app.")
 });
@@ -137,15 +138,16 @@ Deletes comment box from database.
 app.delete("/comments/:id", async (req, res) => {
     try{
         const result = await pool.query(
-            "DELETE FROM comments WHERE id=$1",
+            `DELETE FROM comments WHERE id=$1
+            RETURNING *`,
             [req.params.id]
         )
-
         if (result.rowCount === 0){
             return res.status(404).send("Not found");
         }
-
-        broadcast({ type: "comment_deleted", id: [req.params.id] });
+        
+        const row = result.rows[0];
+        broadcast({ type: "comment_deleted", comment: row });
 
         res.send("Deleted");
     } catch (err){
@@ -176,6 +178,6 @@ async function initDB() {
 
 initDB().then(() => {
     // Starts the server
-    app.listen(port, /* '0.0.0.0', */ () => console.log(`Server is running on port ${port}`));
-    //server.listen(port, /* '0.0.0.0', */ () => console.log(`Server is running on port ${port}`));
+    //app.listen(port, /* '0.0.0.0', */ () => console.log(`Server is running on port ${port}`));
+    server.listen(port, /* '0.0.0.0', */ () => console.log(`Server is running on port ${port}`));
 });

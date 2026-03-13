@@ -131,34 +131,42 @@ let topZIndex = 9000;
     document.head.appendChild(style);
 })();
 
-/* const ws = new WebSocket(`ws://localhost:3000`);
+const ws = new WebSocket(`ws://localhost:3000`);
 ws.addEventListener('message', (event) => {
     const data = JSON.parse(event.data);
 
     if(data.type === 'comment_created'){
-        if(data.comment.page_url === window.location.origin + window.location.pathname){
+        if(data.comment.page_url === window.location.origin + window.location.pathname && data.comment.author_id !== localStorage.getItem("lt-author-id")){
             const fEvent = { pageX: data.comment.pos_x, pageY: data.comment.pos_y };
             const element = document.querySelector(data.comment.dom_path);
-            const box = makeDialogBox(e=fEvent, dialogText=data.comment.selected_text, sourceElement=element);
+            const box = makeDialogBox(e=fEvent, dialogText=data.comment.selected_text, sourceElement=element, userOwns=false);
 
             box.dataset.commentID = data.comment.id;
-            box.querySelectorAll('textarea').value = data.comment.comment_text;
+            box.querySelector('textarea').value = data.comment.comment_text;
             document.body.appendChild(box);
         }
     }
 
     if(data.type === 'comment_deleted'){
         document.querySelectorAll('.lt-dialog-box').forEach(box => {
-            if(box.dataset.commentID == data.id) box.remove();
+            if(box.dataset.commentID == data.comment.id){
+                const sourceElement = document.querySelector(data.comment.dom_path);
+                sourceElement.classList.remove("lt-selected-source");
+                box.remove();
+            }
         });
     }
 
     if(data.type === 'comment_updated'){
         document.querySelectorAll('.lt-dialog-box').forEach(box => {
-            if(box.dataset.commentID == data.id) box.querySelector('textarea').value = data.comment.comment_text;
+            if(box.dataset.commentID == data.comment.id && data.comment.author_id !== localStorage.getItem("lt-author-id")) {
+                box.querySelector('textarea').value = data.comment.comment_text;
+                box.style.left = `${data.comment.pos_x}px`;
+                box.style.top = `${data.comment.pos_y}px`;
+            }
         });
     }
-}); */
+});
 
 /* 
  *  Gets the parent element of the selected text.
@@ -190,6 +198,9 @@ function bringToFront(el){
     el.style.zIndex = String(topZIndex);
 }
 
+/*
+Gets author id from local storage, or creates and stores it if doesn't exist.
+*/
 function getAuthorID(){
     let id = localStorage.getItem("lt-author-id");
     
@@ -312,6 +323,19 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     Stop dragging logic.
     */
     document.addEventListener("mouseup", () => {
+        /* if(isDragging){
+            await fetch(`/comments/${commentID}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    comment_text: comment,
+                    pos_x: dialogBox.offsetLeft,
+                    pos_y: dialogBox.offsetTop,
+                })
+            });
+        } */
         isDragging = false;
         dialogBox.style.cursor = "auto";
         dialogBox.style.opacity = "100%";
@@ -356,7 +380,7 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
         if(!commentID){
             // new comment being added
             
-            const response = await fetch("/comments", {
+            const response = await fetch("http://localhost:3000/comments", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -376,10 +400,10 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
         }
         else {
             if(comment === ""){  // existing comment made empty, deleting comment box.
-                await fetch(`/comments/${commentID}`, { method: "DELETE" });
+                await fetch(`http://localhost:3000/comments/${commentID}`, { method: "DELETE" });
             } 
             else {  // existing comment being updated.
-                await fetch(`/comments/${commentID}`, {
+                await fetch(`http://localhost:3000/comments/${commentID}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -413,7 +437,7 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
         
         const commentID = dialogBox.dataset.commentID;
         if(commentID) {
-            await fetch(`/comments/${commentID}`, { method: "DELETE" });
+            await fetch(`http://localhost:3000/comments/${commentID}`, { method: "DELETE" });
         }
 
         sourceElement.classList.remove("lt-selected-source");
@@ -559,7 +583,7 @@ Gets saved comments from database and loads into website.
 */
 async function loadComments() {
     const res = await fetch(
-        "/comments?page_url=" + encodeURIComponent(window.location.origin + window.location.pathname)// encodeURIComponent(window.location.href)
+        "http://localhost:3000/comments?page_url=" + encodeURIComponent(window.location.origin + window.location.pathname)
     );
 
     const comments = await res.json();
