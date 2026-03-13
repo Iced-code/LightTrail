@@ -20,8 +20,8 @@ app.use(cors({
 app.use(express.json());
 
 // Used for testing local HTML files. Likely remove before publishing.
-app.use(express.static(path.join(__dirname)));
-app.use(express.static(path.join(__dirname, "testSites")));
+/* app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, "testSites"))); */
 
 function broadcast(data){
     const message = JSON.stringify(data);
