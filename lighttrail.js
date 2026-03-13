@@ -131,6 +131,35 @@ let topZIndex = 9000;
     document.head.appendChild(style);
 })();
 
+/* const ws = new WebSocket(`ws://localhost:3000`);
+ws.addEventListener('message', (event) => {
+    const data = JSON.parse(event.data);
+
+    if(data.type === 'comment_created'){
+        if(data.comment.page_url === window.location.origin + window.location.pathname){
+            const fEvent = { pageX: data.comment.pos_x, pageY: data.comment.pos_y };
+            const element = document.querySelector(data.comment.dom_path);
+            const box = makeDialogBox(e=fEvent, dialogText=data.comment.selected_text, sourceElement=element);
+
+            box.dataset.commentID = data.comment.id;
+            box.querySelectorAll('textarea').value = data.comment.comment_text;
+            document.body.appendChild(box);
+        }
+    }
+
+    if(data.type === 'comment_deleted'){
+        document.querySelectorAll('.lt-dialog-box').forEach(box => {
+            if(box.dataset.commentID == data.id) box.remove();
+        });
+    }
+
+    if(data.type === 'comment_updated'){
+        document.querySelectorAll('.lt-dialog-box').forEach(box => {
+            if(box.dataset.commentID == data.id) box.querySelector('textarea').value = data.comment.comment_text;
+        });
+    }
+}); */
+
 /* 
  *  Gets the parent element of the selected text.
  */

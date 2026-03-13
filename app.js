@@ -3,7 +3,13 @@ const cors = require('cors');
 const path = require('path');
 const pool = require('./db');
 
+const http = require('http');
+const { WebSocketServer } = require('ws');
+
 const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
 const port = 3000;
 
 app.use(cors({
@@ -13,12 +19,22 @@ app.use(cors({
 }));
 app.use(express.json());
 
-/*
-Used for testing local HTML files. Likely remove before publishing.
-*/
+// Used for testing local HTML files. Likely remove before publishing.
 app.use(express.static(path.join(__dirname)));
 app.use(express.static(path.join(__dirname, "testSites")));
 
+function broadcast(data){
+    const message = JSON.stringify(data);
+    wss.clients.forEach(client => {
+        if(client.readyState === client.OPEN){
+            client.send(message);
+        }
+    });
+}
+wss.on('connection', (ws) => {
+    console.log("WebSocket client connection.");
+    ws.on('close', () => console.log('WebSocket client disconnected.'))
+});
 
 app.get('/', (req, res) => {
     res.send("Hello world! My first NodeJS Express app.")
@@ -40,7 +56,6 @@ app.get('/comments', async (req, res) => {
         const { page_url } = req.query;
 
         const result = await pool.query(
-            //'SELECT * FROM comments',
             `SELECT * FROM comments WHERE page_url = $1`,
             [page_url]
         );
@@ -75,8 +90,11 @@ app.post('/comments', async (req, res) => {
             [page_url, dom_path, selected_text, comment_text, pos_x, pos_y, author_id]
         );
 
-        console.log(result.rows[0]);
-        res.json(result.rows[0]);
+        const row = result.rows[0];
+        broadcast({ type: 'comment_created', comment: row});
+
+        console.log(row);
+        res.json(row);
     } catch (err) {
         console.error("POST /comments:", err);
         res.status(500).send("Server error");
@@ -102,8 +120,11 @@ app.post("/comments/:id", async (req, res) => {
             [req.params.id, comment_text, pos_x, pos_y]
         );
 
-        console.log(result.rows[0]);
-        res.json(result.rows[0]);
+        const row = result.rows[0];
+        broadcast({ type: 'comment_updated', comment: row});
+
+        console.log(row);
+        res.json(row);
     } catch (err) {
         console.error("POST /comments/:id", err);
         res.status(500).send("Server error");
@@ -123,6 +144,9 @@ app.delete("/comments/:id", async (req, res) => {
         if (result.rowCount === 0){
             return res.status(404).send("Not found");
         }
+
+        broadcast({ type: "comment_deleted", id: [req.params.id] });
+
         res.send("Deleted");
     } catch (err){
         console.error("DELETE /comments/:id", err);
@@ -152,5 +176,6 @@ async function initDB() {
 
 initDB().then(() => {
     // Starts the server
-    app.listen(port, /* '0.0.0.0', */ () => console.log(`Server is running on port ${port}`))
+    app.listen(port, /* '0.0.0.0', */ () => console.log(`Server is running on port ${port}`));
+    //server.listen(port, /* '0.0.0.0', */ () => console.log(`Server is running on port ${port}`));
 });
