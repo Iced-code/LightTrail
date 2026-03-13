@@ -13,7 +13,7 @@ const wss = new WebSocketServer({ server });
 const port = 3000;
 
 app.use(cors({
-    origin: "localhost",
+    origin: "*",
     methods: ["GET", "POST", "DELETE"],
     allowedHeaders: ["Content-Type"]
 }));
