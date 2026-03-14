@@ -139,7 +139,6 @@ let topZIndex = 9000;
 
     #lt-HUD-window-header {
         padding: 12px 16px;
-        border-bottom: 0.5px solid rgba(0,0,0,0.08);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -289,13 +288,17 @@ function makeDialogBox(e, dialogText, sourceElement, userOwns=true, dialogCommen
     Highlights source elements red and adds event listener to display
     connected dialog box.
     */
-    dialogBox.sourceElement = sourceElement;
+    
     sourceElement.classList.add("lt-selected-source");
     // Clicking the source element will unhide its dialog box.
     sourceElement.addEventListener("click", () => {
         dialogBox.style.display = "initial";
     });
+    dialogBox.sourceElement = sourceElement;
 
+    /* const rect = sourceElement.getBoundingClientRect();
+    console.log("sX ", rect.left);
+    console.log("sY ", rect.top); */
     /*
     Dialog box styling.
     */
@@ -515,25 +518,20 @@ document.addEventListener("mousedown", function(e) {
     const allDialogBoxes = document.querySelectorAll(".lt-dialog-box");
 
     allDialogBoxes.forEach(box => {
-        const input = box.querySelector(".lt-dialog-input");
-
         try {
+            const input = box.querySelector(".lt-dialog-input");
+
             // Dialog box is deleted if comment is empty.
             if(!box.contains(e.target) && input.value.trim() === ""){
-
                 if(box.sourceElement){
                     box.sourceElement.classList.remove("lt-selected-source");
                 }
                 box.remove();
             }
-            else if (
-                    !box.contains(e.target) && 
-                    !document.getElementById("lt-HUD").classList.contains("hiding")
-                )
-            {   
-                try{
+            else if (!box.contains(e.target) && !document.getElementById("lt-HUD").classList.contains("hiding")) {   
+                try {
                     box.querySelector('.lt-submit-button').style.display = "none";
-                }catch (err){};
+                } catch (err){};
                 box.querySelector('.lt-close-button').style.display = "none";
                 
                 if( !(e.target.classList.contains("lt-selected-source") || e.target.closest(".lt-dialog-box")) ) box.style.display = "none";  // Dialog boxes (and buttons) are hidden when clicked off.
