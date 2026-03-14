@@ -2,15 +2,16 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const pool = require('./db');
-
 const http = require('http');
 const { WebSocketServer } = require('ws');
+require('dotenv').config();
+
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-const port = 3000;
+const port = process.env.BACKEND_PORT || 3000;
 
 app.use(cors({
     origin: "*",
@@ -20,8 +21,8 @@ app.use(cors({
 app.use(express.json());
 
 // Used for testing local HTML files. Likely remove before publishing.
-/* app.use(express.static(path.join(__dirname)));
-app.use(express.static(path.join(__dirname, "testSites"))); */
+app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, "testSites")));
 
 
 /*
@@ -166,6 +167,27 @@ app.delete("/comments/:id", async (req, res) => {
 Initializes 'comments' table in database if does not already exist.
 */
 async function initDB() {
+    /* await pool.query(`
+        CREATE TABLE IF NOT exists webpages (
+            id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+            page_url TEXT NOT NULL UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) 
+    `);
+    await pool.query(`
+        CREATE TABLE IF NOT exists comments (
+            id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+            page_id INTEGER NOT NULL REFERENCES webpages(id) ON DELETE CASCADE,
+            dom_path TEXT,
+            selected_text TEXT,
+            comment_text TEXT NOT NULL,
+            pos_x INTEGER,
+            pos_y INTEGER,
+            author_id TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) 
+    `); */
+
     await pool.query(`
         CREATE TABLE IF NOT exists comments (
             id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,

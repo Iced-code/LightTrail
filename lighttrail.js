@@ -1,4 +1,3 @@
-
 let topZIndex = 9000;
 
 /* 
@@ -131,6 +130,9 @@ let topZIndex = 9000;
     document.head.appendChild(style);
 })();
 
+/*
+WebSocket connection to server. All changes (adding, deleting, posting commeents) are shared, allowing for realtime updates.
+*/
 const ws = new WebSocket(`ws://localhost:3000`);
 ws.addEventListener('message', (event) => {
     const data = JSON.parse(event.data);
@@ -183,11 +185,6 @@ function getSelectedEl(){
         return commonAncestor;
     }
     return null;
-    /* var text = "";
-    if(typeof window.getSelection != "undefined"){
-        text = window.getSelection().toString();
-    }
-    return text; */
 }
 
 /*
@@ -323,19 +320,6 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     Stop dragging logic.
     */
     document.addEventListener("mouseup", () => {
-        /* if(isDragging){
-            await fetch(`/comments/${commentID}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    comment_text: comment,
-                    pos_x: dialogBox.offsetLeft,
-                    pos_y: dialogBox.offsetTop,
-                })
-            });
-        } */
         isDragging = false;
         dialogBox.style.cursor = "auto";
         dialogBox.style.opacity = "100%";
@@ -478,7 +462,7 @@ document.onmouseup = function(e) {
     const selectedElement = getSelectedEl();
     const selectedText = window.getSelection().toString().trim();
 
-    if(selectedText){
+    if(selectedText && !selectedElement.classList.contains("lt-selected-source")){
         var dialogBox = makeDialogBox(e, selectedText, selectedElement);
         document.body.appendChild(dialogBox);
 
