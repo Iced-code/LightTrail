@@ -153,8 +153,15 @@ ws.addEventListener('message', (event) => {
         document.querySelectorAll('.lt-dialog-box').forEach(box => {
             if(box.dataset.commentID == data.comment.id){
                 const sourceElement = document.querySelector(data.comment.dom_path);
-                sourceElement.classList.remove("lt-selected-source");
+                // sourceElement.classList.remove("lt-selected-source");
                 box.remove();
+
+                const hasComments = Array.from(document.querySelectorAll(".lt-dialog-box"))
+                    .some(b => b.sourceElement === sourceElement);
+
+                if(!hasComments){
+                    sourceElement.classList.remove("lt-selected-source");
+                }
             }
         });
     }
@@ -281,6 +288,8 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     Object.assign(dialogBox.style, {
         left: e.pageX + "px",
         top: (e.pageY + 10) + "px",
+
+        zIndex: String(topZIndex + 1)
     });
 
 
@@ -423,9 +432,15 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
             await fetch(`http://localhost:3000/comments/${commentID}`, { method: "DELETE" });
         }
 
-        sourceElement.classList.remove("lt-selected-source");
+        //sourceElement.classList.remove("lt-selected-source");
         dialogBox.remove();
-        //loadComments();
+
+        const hasComments = Array.from(document.querySelectorAll(".lt-dialog-box"))
+            .some(box => box.sourceElement === sourceElement);
+
+        if(!hasComments){
+            sourceElement.classList.remove("lt-selected-source");
+        }
     });
 
 
@@ -462,7 +477,7 @@ document.onmouseup = function(e) {
     const selectedElement = getSelectedEl();
     const selectedText = window.getSelection().toString().trim();
 
-    if(selectedText && !selectedElement.classList.contains("lt-selected-source")){
+    if(selectedText/*  && !selectedElement.classList.contains("lt-selected-source") */){
         var dialogBox = makeDialogBox(e, selectedText, selectedElement);
         document.body.appendChild(dialogBox);
 
