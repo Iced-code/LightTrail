@@ -27,7 +27,7 @@ let topZIndex = 9000;
     }
 
     .lt-other-user.lt-dialog-box {
-        border-bottom: 4px solid rgb(245, 197, 66);
+        border-bottom: 4px solid #f5c542;
     }
 
     .lt-label {
@@ -75,107 +75,125 @@ let topZIndex = 9000;
     .lt-close-button:hover {
         background-color: rgb(181, 181, 181);
     }
-    
+
     #lt-HUD {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        z-index: ${topZIndex};
-        padding: 8px 18px;
+        z-index: ${topZIndex+1000};
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: #fff;
+        border: 1.5px solid rgb(255, 255, 255);
         border-radius: 50px;
         cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        
-        font-size: 35px;
-        font-weight: bold;
-
-        background-color: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        font-size: 14px;
+        font-weight: 500;
         color: black;
-        border: 2px solid rgb(245, 66, 66);
-
-        transition: background-color 0.5s;
-
+        transition: background 0.25s, color 0.25s, box-shadow 0.25s;
         user-select: none;
     }
     #lt-HUD.hiding {
-        background-color: rgb(245, 66, 66);
-        border: 2px solid white;
+        background: rgb(245, 66, 66);
+        background: linear-gradient(90deg, rgb(245,66,66), rgb(255, 215, 137));
+        color: #fff;
+        box-shadow: 0 2px 12px rgba(245,66,66,0.3);
+    }
+
+    #lt-HUD-badge {
+        font-size: 11px;
+        padding: 1px 7px;
+        border-radius: 20px;
+        font-weight: 500;
+        background: rgb(245, 66, 66);
+        background: linear-gradient(90deg, rgb(245,66,66), rgb(255, 215, 137));
+        color: #fff;
+        transition: background 0.25s;
+    }
+    #lt-HUD.hiding #lt-HUD-badge {
+        background: rgb(255, 255, 255);
+        color: black;
     }
 
     #lt-HUD-window {
-        height: 89%;
-        width: 0px;
         position: fixed;
-        top: 5px;
-        right: 5px;
-        overflow-x: hidden; /* Disable horizontal scroll */
-        /* padding-top: 60px; */
-
+        bottom: 70px;
+        right: 20px;
+        width: 280px;
+        max-height: 400px;
         display: none;
-        padding: 150px 20px;
-        background-color: white;
-        color: black;
-        border-radius: 15px;
-        cursor: default;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-
-        z-index: ${topZIndex};
+        flex-direction: column;
+        background: #fff;
+        border: 0.5px solid rgba(0,0,0,0.12);
+        border-radius: 5px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        overflow: hidden;
+        z-index: ${topZIndex+1000};
     }
     #lt-HUD.hiding #lt-HUD-window {
         display: flex;
-        width: 250px;
+    }
+
+    #lt-HUD-window-header {
+        padding: 12px 16px;
+        border-bottom: 0.5px solid rgba(0,0,0,0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    #lt-HUD-window-list {
+        overflow-y: auto;
+        flex: 1;
+    }
+    .lt-HUD-item {
+        padding: 10px 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        border-bottom: 0.5px solid rgba(0,0,0,0.06);
+        cursor: pointer;
+    }
+    .lt-HUD-item:last-child { border-bottom: none; }
+    .lt-HUD-item:hover { background: rgba(0,0,0,0.03); }
+    .lt-HUD-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+    .lt-HUD-item-selected {
+        font-size: 12px;
+        color: gray;
+        font-style: italic;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 0 0 2px;
+    }
+    .lt-HUD-item-comment {
+        font-size: 13px;
+        margin: 0;
+        color: black;
+    }
+    #lt-HUD-window-footer {
+        padding: 8px 16px;
+        border-top: 0.5px solid rgba(0,0,0,0.08);
+        font-size: 12px;
+        color: gray;
+        text-align: center;
+        flex-shrink: 0;
     }
     `
 
     document.head.appendChild(style);
 })();
 
-/*
-WebSocket connection to server. All changes (adding, deleting, posting commeents) are shared, allowing for realtime updates.
-*/
-const ws = new WebSocket(`ws://localhost:3000`);
-ws.addEventListener('message', (event) => {
-    const data = JSON.parse(event.data);
 
-    if(data.type === 'comment_created'){
-        if(data.comment.page_url === window.location.origin + window.location.pathname && data.comment.author_id !== localStorage.getItem("lt-author-id")){
-            const fEvent = { pageX: data.comment.pos_x, pageY: data.comment.pos_y };
-            const element = document.querySelector(data.comment.dom_path);
-            const box = makeDialogBox(e=fEvent, dialogText=data.comment.selected_text, sourceElement=element, userOwns=false);
-
-            box.dataset.commentID = data.comment.id;
-            box.querySelector('textarea').value = data.comment.comment_text;
-            document.body.appendChild(box);
-        }
-    }
-
-    if(data.type === 'comment_deleted'){
-        document.querySelectorAll('.lt-dialog-box').forEach(box => {
-            if(box.dataset.commentID == data.comment.id){
-                const sourceElement = document.querySelector(data.comment.dom_path);
-                // sourceElement.classList.remove("lt-selected-source");
-                box.remove();
-
-                const hasComments = Array.from(document.querySelectorAll(".lt-dialog-box"))
-                    .some(b => b.sourceElement === sourceElement);
-
-                if(!hasComments){
-                    sourceElement.classList.remove("lt-selected-source");
-                }
-            }
-        });
-    }
-
-    if(data.type === 'comment_updated'){
-        document.querySelectorAll('.lt-dialog-box').forEach(box => {
-            if(box.dataset.commentID == data.comment.id && data.comment.author_id !== localStorage.getItem("lt-author-id")) {
-                box.querySelector('textarea').value = data.comment.comment_text;
-                box.style.left = `${data.comment.pos_x}px`;
-                box.style.top = `${data.comment.pos_y}px`;
-            }
-        });
-    }
-});
 
 /* 
  *  Gets the parent element of the selected text.
@@ -262,7 +280,7 @@ function getDOMPath(el){
 /*
 Creates popup dialog box for comments.
 */
-function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
+function makeDialogBox(e, dialogText, sourceElement, userOwns=true, dialogComment=null){
     var dialogBox = document.createElement("div");
     dialogBox.className = "lt-dialog-box";
 
@@ -276,10 +294,6 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     // Clicking the source element will unhide its dialog box.
     sourceElement.addEventListener("click", () => {
         dialogBox.style.display = "initial";
-
-        // Displays close button when dialog box's source elment clicked.
-        closeBtn.disabled = false;
-        closeBtn.style.display = "initial";
     });
 
     /*
@@ -288,10 +302,8 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     Object.assign(dialogBox.style, {
         left: e.pageX + "px",
         top: (e.pageY + 10) + "px",
-
         zIndex: String(topZIndex + 1)
     });
-
 
     // --- DRAG LOGIC ---
     let isDragging = false;
@@ -301,6 +313,9 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     */
     dialogBox.addEventListener("mousedown", (e) => {
         bringToFront(dialogBox);
+        if(userOwns){
+            submitBtn.style.display = "initial";
+        }
         closeBtn.disabled = false;
         closeBtn.style.display = "initial";
 
@@ -341,12 +356,13 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
     const numChars = 25;
     const labelText = dialogText.length > numChars ? dialogText.substring(0,numChars) + "..." : dialogText;
     label.className = "lt-label";
-    label.innerHTML = `<strong>Selected: </strong>"<span style="color:red;">${labelText}</span>"`;  // <br>${hours}:${minutes}:${seconds}
+    label.innerHTML = `<strong>Selected: </strong>"<span style="color:red;">${labelText}</span>"`;
     
     /*
     Form (Input field and submit button) for comments.
     */
     const form = document.createElement("form");
+    form.className = "lt-dialog-form";
 
     const inputField = document.createElement("textarea");
     inputField.className = "lt-dialog-input";
@@ -367,7 +383,6 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
         if(!comment) return;
 
         const domPath = getDOMPath(sourceElement);
-        //console.log(domPath);
         
         const commentID = dialogBox.dataset.commentID;
         if(!commentID){
@@ -389,10 +404,13 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
             });
             const saved = await response.json();
             dialogBox.dataset.commentID = saved.id;
+
+            refreshHUD();
         }
         else {
             if(comment === ""){  // existing comment made empty, deleting comment box.
                 await fetch(`http://localhost:3000/comments/${commentID}`, { method: "DELETE" });
+                refreshHUD();
             } 
             else {  // existing comment being updated.
                 await fetch(`http://localhost:3000/comments/${commentID}`, {
@@ -406,6 +424,7 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
                         pos_y: dialogBox.offsetTop,
                     })
                 });
+                refreshHUD();
             }
         }
 
@@ -415,8 +434,6 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
 
         closeBtn.disabled = true;
         closeBtn.style.display = "none";
-
-        // loadComments();
     });
 
     /*
@@ -432,7 +449,6 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
             await fetch(`http://localhost:3000/comments/${commentID}`, { method: "DELETE" });
         }
 
-        //sourceElement.classList.remove("lt-selected-source");
         dialogBox.remove();
 
         const hasComments = Array.from(document.querySelectorAll(".lt-dialog-box"))
@@ -441,10 +457,16 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
         if(!hasComments){
             sourceElement.classList.remove("lt-selected-source");
         }
+        refreshHUD();
     });
 
-
-    /// If the comment is from someone other than the user, its styled accordingly and its input field is uneditable.
+    // If an existing comment, input field is loaded with comment. 
+    if(dialogComment){
+        inputField.value = dialogComment;
+        submitBtn.style.display = "none";
+        closeBtn.style.display = "none";
+    }
+    // If the comment is from someone other than the user, its styled accordingly and its input field is uneditable.
     if(!userOwns){   
         dialogBox.classList.add("lt-other-user");
         inputField.disabled = true;
@@ -456,6 +478,7 @@ function makeDialogBox(e, dialogText="", sourceElement, userOwns=true){
             submitBtn.style.display = "initial";
         });
     }
+
     form.appendChild(inputField);
     if(userOwns) {
         form.appendChild(submitBtn);
@@ -486,7 +509,7 @@ document.onmouseup = function(e) {
 };
 
 /*
-When mouse clicked outside of the dialog box.
+When mouse clicked outside of a dialog box.
 */
 document.addEventListener("mousedown", function(e) {
     const allDialogBoxes = document.querySelectorAll(".lt-dialog-box");
@@ -505,11 +528,15 @@ document.addEventListener("mousedown", function(e) {
             }
             else if (
                     !box.contains(e.target) && 
-                    !(e.target.classList.contains("lt-selected-source") || e.target.closest(".lt-dialog-box")) &&
                     !document.getElementById("lt-HUD").classList.contains("hiding")
                 )
             {   
-                box.style.display = "none";  // Dialog boxes are hidden when clicked off.
+                try{
+                    box.querySelector('.lt-submit-button').style.display = "none";
+                }catch (err){};
+                box.querySelector('.lt-close-button').style.display = "none";
+                
+                if( !(e.target.classList.contains("lt-selected-source") || e.target.closest(".lt-dialog-box")) ) box.style.display = "none";  // Dialog boxes (and buttons) are hidden when clicked off.
             }
         }
         catch (TypeError) {
@@ -523,58 +550,6 @@ document.addEventListener("mousedown", function(e) {
         document.getElementById("lt-HUD").classList.toggle("hiding", boxesVisible);
     } */
 });
-
-
-function HUDWindow(){
-    const HUD_window = document.createElement("div");
-    HUD_window.id = "lt-HUD-window";
-    HUD_window.innerText = "Highlight a part of the website to add a comment.";
-
-    return HUD_window;
-}
-
-let boxesVisible = false;
-function makeHUD() {
-    const HUD = document.createElement("div");
-    HUD.id = "lt-HUD";
-    HUD.innerText = "☰";
-
-    HUD.addEventListener("click", (e) => {
-        const allDialogBoxes = document.querySelectorAll(".lt-dialog-box");
-
-        let display = "initial";
-
-        boxesVisible = !boxesVisible;
-        HUD.classList.toggle("hiding", boxesVisible);
-        if(boxesVisible){
-            display = "initial";
-        }
-        else {
-            display = "none";
-        }
-
-        allDialogBoxes.forEach(box => {
-            box.style.display = display;
-        });
-    });
-
-    const HUD_window = HUDWindow();
-    /* HUD.addEventListener("click", (e) => {
-        const allDialogBoxes = document.querySelectorAll(".lt-dialog-box");
-
-        allDialogBoxes.forEach(box => {
-            const input = box.querySelector(".lt-dialog-input");
-
-            let p = document.createElement("p");
-            p.innerText = input.value.trim();
-            
-            HUD_window.appendChild(p);
-        });
-    }); */
-
-    HUD.appendChild(HUD_window);  // MUST CHANGE!! CLICKING ON HUD_WINDOW HIDES HUD (because clicking on HUD). prob as own element in body, not HUD.
-    document.body.appendChild(HUD);
-}
 
 /* 
 Gets saved comments from database and loads into website.
@@ -593,15 +568,174 @@ async function loadComments() {
         };
 
         const element = document.querySelector(c.dom_path);
-        const box = makeDialogBox(e=fEvent, dialogText=c.selected_text, sourceElement=element, userOwns=(c.author_id === authorID));
+        const ownership = c.author_id === authorID;
+        const box = makeDialogBox(e=fEvent, dialogText=c.selected_text, sourceElement=element, userOwns=ownership, dialogComment=c.comment_text);
         box.dataset.commentID = c.id;
-        box.querySelector("textarea").value = c.comment_text;
 
         document.body.appendChild(box);
+    });
+
+    refreshHUD();
+}
+
+function HUDWindow(){
+    const HUD_window = document.createElement("div");
+    HUD_window.id = "lt-HUD-window";
+    HUD_window.innerText = "Highlight a part of the website to add a comment.";
+
+    return HUD_window;
+}
+let boxesVisible = false;
+function makeHUD() {
+    const HUD = document.createElement("div");
+    HUD.id = "lt-HUD";
+
+    // Dot icon
+    /* const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    icon.setAttribute("width", "14"); icon.setAttribute("height", "14");
+    icon.setAttribute("viewBox", "0 0 16 16");
+    icon.innerHTML = `<circle cx="8" cy="4" r="1.5" fill="currentColor"/>
+                      <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+                      <circle cx="8" cy="12" r="1.5" fill="currentColor"/>`; */
+
+    const label = document.createElement("span");
+    label.textContent = "LightTrail";
+
+    const badge = document.createElement("span");
+    badge.id = "lt-HUD-badge";
+    badge.textContent = "0";
+
+    // Panel
+    const panel = document.createElement("div");
+    panel.id = "lt-HUD-window";
+
+    const header = document.createElement("div");
+    header.id = "lt-HUD-window-header";
+    /* header.innerHTML = `<span style="font-size:14px;font-weight:500;">Comments</span>
+                        <span style="font-size:12px;color:gray;">this page</span>`; */
+
+    const list = document.createElement("div");
+    list.id = "lt-HUD-window-list";
+
+    const footer = document.createElement("div");
+    footer.id = "lt-HUD-window-footer";
+    footer.textContent = "highlight text to add a comment";
+
+    panel.appendChild(header);
+    panel.appendChild(list);
+    panel.appendChild(footer);
+
+    // HUD.appendChild(icon);
+    HUD.appendChild(label);
+    HUD.appendChild(badge);
+    HUD.appendChild(panel);
+
+    HUD.addEventListener("click", (e) => {
+        e.stopPropagation();
+        boxesVisible = !boxesVisible;
+        HUD.classList.toggle("hiding", boxesVisible);
+
+        const display = boxesVisible ? "initial" : "none";
+        document.querySelectorAll(".lt-dialog-box").forEach(box => {
+            box.style.display = display;
+        });
+
+        if (boxesVisible) refreshHUD();
+    });
+
+    document.body.appendChild(HUD);
+}
+
+function refreshHUD() {
+    const list = document.getElementById("lt-HUD-window-list");
+    const badge = document.getElementById("lt-HUD-badge");
+    if (!list) return;
+
+    const boxes = Array.from(document.querySelectorAll(".lt-dialog-box"));
+    const saved = boxes.filter(b => b.dataset.commentID);
+
+    badge.textContent = saved.length;
+    list.innerHTML = "";
+
+    if (saved.length === 0) {
+        list.innerHTML = `<p style="font-size:13px;color:gray;text-align:center;padding:16px;margin:0;">no comments yet</p>`;
+        return;
+    }
+
+    saved.forEach(box => {
+        const isOwn = !box.classList.contains("lt-other-user");
+        const selectedText = box.querySelector(".lt-label span")?.textContent || "";
+        const commentText  = box.querySelector("textarea")?.value || "";
+
+        const item = document.createElement("div");
+        item.className = "lt-HUD-item";
+        item.innerHTML = `
+            <div class="lt-HUD-dot" style="background:${isOwn ? "rgb(245,66,66)" : "rgb(245,197,66)"}"></div>
+            <div style="flex:1;min-width:0;">
+                <p class="lt-HUD-item-selected">"${selectedText}"</p>
+                <p class="lt-HUD-item-comment">${commentText}</p>
+            </div>`;
+
+        // Clicking a HUD item scrolls to and reveals its dialog box
+        item.addEventListener("click", (e) => {
+            e.stopPropagation();
+            box.style.display = "initial";
+            box.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+
+        list.appendChild(item);
     });
 }
 
 
+/*
+WebSocket connection to server. All changes (adding, deleting, posting commeents) are shared, allowing for realtime updates.
+*/
+const ws = new WebSocket(`ws://localhost:3000`);
+ws.addEventListener('message', (event) => {
+    const data = JSON.parse(event.data);
+
+    if(data.type === 'comment_created'){
+        if(data.comment.page_url === window.location.origin + window.location.pathname && data.comment.author_id !== localStorage.getItem("lt-author-id")){
+            const fEvent = { pageX: data.comment.pos_x, pageY: data.comment.pos_y };
+            const element = document.querySelector(data.comment.dom_path);
+            const box = makeDialogBox(e=fEvent, dialogText=data.comment.selected_text, sourceElement=element, userOwns=false, dialogComment=data.comment.comment_text);
+
+            box.dataset.commentID = data.comment.id;
+            document.body.appendChild(box);
+        }
+    }
+
+    if(data.type === 'comment_deleted'){
+        document.querySelectorAll('.lt-dialog-box').forEach(box => {
+            if(box.dataset.commentID == data.comment.id){
+                const sourceElement = document.querySelector(data.comment.dom_path);
+                box.remove();
+
+                const hasComments = Array.from(document.querySelectorAll(".lt-dialog-box"))
+                    .some(b => b.sourceElement === sourceElement);
+
+                if(!hasComments){
+                    sourceElement.classList.remove("lt-selected-source");
+                }
+            }
+        });
+    }
+
+    if(data.type === 'comment_updated'){
+        document.querySelectorAll('.lt-dialog-box').forEach(box => {
+            if(box.dataset.commentID == data.comment.id && data.comment.author_id !== localStorage.getItem("lt-author-id")) {
+                box.querySelector('textarea').value = data.comment.comment_text;
+                box.style.left = `${data.comment.pos_x}px`;
+                box.style.top = `${data.comment.pos_y}px`;
+            }
+        });
+    }
+
+    if(data.type === 'comment_created' || data.type === 'comment_deleted' || data.type === 'comment_updated'){
+        refreshHUD();
+    }
+});
 const authorID = getAuthorID();
 loadComments();
 makeHUD();
