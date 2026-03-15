@@ -440,7 +440,7 @@ function makeDialogBox(e, dialogText, sourceElement, userOwns=true, dialogCommen
     });
 
     /*
-    "Close popup" button.
+    Delete comment button.
     */
     const closeBtn = document.createElement("span");
     closeBtn.innerText = "❌";
@@ -674,8 +674,32 @@ function refreshHUD() {
                 <p class="lt-HUD-item-comment">${commentText}</p>
             </div>`;
 
+        
+        const closeBtn = document.createElement("span");
+        closeBtn.innerText = "❌";
+        closeBtn.className = "lt-close-button";
+        closeBtn.addEventListener("click", async () => {
+            
+            const commentID = box.dataset.commentID;
+            if(commentID) {
+                await fetch(`http://localhost:3000/comments/${commentID}`, { method: "DELETE" });
+            }
+
+            /* box.remove();
+
+            const hasComments = Array.from(document.querySelectorAll(".lt-dialog-box"))
+                .some(dbox => dbox.sourceElement === sourceElement);
+
+            if(!hasComments){
+                sourceElement.classList.remove("lt-selected-source");
+            } */
+            refreshHUD();
+        });
+        item.appendChild(closeBtn);
+
         // Clicking a HUD item scrolls to and reveals its dialog box
         item.addEventListener("click", (e) => {
+            if(e.target.target === "SPAN") return;
             e.stopPropagation();
             box.style.display = "initial";
             box.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -734,6 +758,20 @@ ws.addEventListener('message', (event) => {
         refreshHUD();
     }
 });
-const authorID = getAuthorID();
-loadComments();
-makeHUD();
+
+const welcome_message = `\nThis page includes LightTrail, a tool that enables users to add comments to webpages.
+This tool is meant for web developers and clients to better communicate ideas, changes, and feedback,
+enhancing and refining the collaborative process.
+
+LightTrail was developed by Ayaan Modak (GitHub: Iced-code). Learn more at https://iced-code.github.io/LightTrail/.
+
+**Note: This tool must be removed before publishing this website.**
+`;
+const isMobile = /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+console.log(welcome_message);
+if(!isMobile){
+    const authorID = getAuthorID();
+    loadComments();
+    makeHUD();
+}
