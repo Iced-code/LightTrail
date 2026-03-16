@@ -1,3 +1,6 @@
+const LT_SERVER = "http://localhost:3000";
+const LT_WS = "ws://localhost:3000";
+
 let topZIndex = 9000;
 
 /* 
@@ -77,6 +80,8 @@ let topZIndex = 9000;
     }
 
     #lt-HUD {
+        font-family: 'Jost', sans-serif;
+
         position: fixed;
         bottom: 20px;
         right: 20px;
@@ -296,12 +301,6 @@ function makeDialogBox(e, dialogText, sourceElement, userOwns=true, dialogCommen
     });
     dialogBox.sourceElement = sourceElement;
 
-    /* const rect = sourceElement.getBoundingClientRect();
-    console.log("sX ", rect.left);
-    console.log("sY ", rect.top); */
-    /*
-    Dialog box styling.
-    */
     Object.assign(dialogBox.style, {
         left: e.pageX + "px",
         top: (e.pageY + 10) + "px",
@@ -390,7 +389,7 @@ function makeDialogBox(e, dialogText, sourceElement, userOwns=true, dialogCommen
         const commentID = dialogBox.dataset.commentID;
         if(!commentID){
             // new comment being added
-            const response = await fetch("http://localhost:3000/comments", {
+            const response = await fetch(`${LT_SERVER}/comments`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -412,11 +411,11 @@ function makeDialogBox(e, dialogText, sourceElement, userOwns=true, dialogCommen
         }
         else {
             if(comment === ""){  // existing comment made empty, deleting comment box.
-                await fetch(`http://localhost:3000/comments/${commentID}`, { method: "DELETE" });
+                await fetch(`${LT_SERVER}/comments/${commentID}`, { method: "DELETE" });
                 refreshHUD();
             } 
             else {  // existing comment being updated.
-                await fetch(`http://localhost:3000/comments/${commentID}`, {
+                await fetch(`${LT_SERVER}/comments/${commentID}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -449,7 +448,7 @@ function makeDialogBox(e, dialogText, sourceElement, userOwns=true, dialogCommen
         
         const commentID = dialogBox.dataset.commentID;
         if(commentID) {
-            await fetch(`http://localhost:3000/comments/${commentID}`, { method: "DELETE" });
+            await fetch(`${LT_SERVER}/comments/${commentID}`, { method: "DELETE" });
         }
 
         dialogBox.remove();
@@ -503,7 +502,7 @@ document.onmouseup = function(e) {
     const selectedElement = getSelectedEl();
     const selectedText = window.getSelection().toString().trim();
 
-    if(selectedText/*  && !selectedElement.classList.contains("lt-selected-source") */){
+    if(selectedText){
         var dialogBox = makeDialogBox(e, selectedText, selectedElement);
         document.body.appendChild(dialogBox);
 
@@ -541,12 +540,6 @@ document.addEventListener("mousedown", function(e) {
             box.style.display = "none";
         }
     });
-
-    
-    /* if(e.target.id !== "lt-HUD"){
-        boxesVisible = !boxesVisible;
-        document.getElementById("lt-HUD").classList.toggle("hiding", boxesVisible);
-    } */
 });
 
 /* 
@@ -554,7 +547,7 @@ Gets saved comments from database and loads into website.
 */
 async function loadComments() {
     const res = await fetch(
-        "http://localhost:3000/comments?page_url=" + encodeURIComponent(window.location.origin + window.location.pathname)
+        `${LT_SERVER}/comments?page_url=` + encodeURIComponent(window.location.origin + window.location.pathname)
     );
 
     const comments = await res.json();
@@ -576,25 +569,10 @@ async function loadComments() {
     refreshHUD();
 }
 
-function HUDWindow(){
-    const HUD_window = document.createElement("div");
-    HUD_window.id = "lt-HUD-window";
-    HUD_window.innerText = "Highlight a part of the website to add a comment.";
-
-    return HUD_window;
-}
 let boxesVisible = false;
 function makeHUD() {
     const HUD = document.createElement("div");
     HUD.id = "lt-HUD";
-
-    // Dot icon
-    /* const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    icon.setAttribute("width", "14"); icon.setAttribute("height", "14");
-    icon.setAttribute("viewBox", "0 0 16 16");
-    icon.innerHTML = `<circle cx="8" cy="4" r="1.5" fill="currentColor"/>
-                      <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
-                      <circle cx="8" cy="12" r="1.5" fill="currentColor"/>`; */
 
     const label = document.createElement("span");
     label.textContent = "LightTrail";
@@ -609,9 +587,7 @@ function makeHUD() {
 
     const header = document.createElement("div");
     header.id = "lt-HUD-window-header";
-    /* header.innerHTML = `<span style="font-size:14px;font-weight:500;">Comments</span>
-                        <span style="font-size:12px;color:gray;">this page</span>`; */
-
+    
     const list = document.createElement("div");
     list.id = "lt-HUD-window-list";
 
@@ -682,24 +658,16 @@ function refreshHUD() {
             
             const commentID = box.dataset.commentID;
             if(commentID) {
-                await fetch(`http://localhost:3000/comments/${commentID}`, { method: "DELETE" });
+                await fetch(`${LT_SERVER}/comments/${commentID}`, { method: "DELETE" });
             }
 
-            /* box.remove();
-
-            const hasComments = Array.from(document.querySelectorAll(".lt-dialog-box"))
-                .some(dbox => dbox.sourceElement === sourceElement);
-
-            if(!hasComments){
-                sourceElement.classList.remove("lt-selected-source");
-            } */
             refreshHUD();
         });
         item.appendChild(closeBtn);
 
         // Clicking a HUD item scrolls to and reveals its dialog box
         item.addEventListener("click", (e) => {
-            if(e.target.target === "SPAN") return;
+            /* if(e.target.tagName === "SPAN") return; */
             e.stopPropagation();
             box.style.display = "initial";
             box.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -713,7 +681,7 @@ function refreshHUD() {
 /*
 WebSocket connection to server. All changes (adding, deleting, posting commeents) are shared, allowing for realtime updates.
 */
-const ws = new WebSocket(`ws://localhost:3000`);
+const ws = new WebSocket(`${LT_WS}`);
 ws.addEventListener('message', (event) => {
     const data = JSON.parse(event.data);
 
@@ -767,7 +735,7 @@ LightTrail was developed by Ayaan Modak (GitHub: Iced-code). Learn more at https
 
 **Note: This tool must be removed before publishing this website.**
 `;
-const isMobile = /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+const isMobile = /Mobi|Android|iPhone|iPod|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
 
 console.log(welcome_message);
 const authorID = getAuthorID();

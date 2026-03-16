@@ -21,9 +21,8 @@ app.use(cors({
 app.use(express.json());
 
 // Used for testing local HTML files. Likely remove before publishing.
-app.use(express.static(path.join(__dirname)));
-app.use(express.static(path.join(__dirname, "testSites")));
-
+/* app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, "testSites"))); */
 
 /*
 broadcasts message for websocket.
@@ -101,7 +100,6 @@ app.post('/comments', async (req, res) => {
         const row = result.rows[0];
         broadcast({ type: 'comment_created', comment: row});
 
-        console.log(row);
         res.json(row);
     } catch (err) {
         console.error("POST /comments:", err);
@@ -131,7 +129,6 @@ app.post("/comments/:id", async (req, res) => {
         const row = result.rows[0];
         broadcast({ type: 'comment_updated', comment: row});
 
-        console.log(row);
         res.json(row);
     } catch (err) {
         console.error("POST /comments/:id", err);
@@ -167,27 +164,6 @@ app.delete("/comments/:id", async (req, res) => {
 Initializes 'comments' table in database if does not already exist.
 */
 async function initDB() {
-    /* await pool.query(`
-        CREATE TABLE IF NOT exists webpages (
-            id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-            page_url TEXT NOT NULL UNIQUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) 
-    `);
-    await pool.query(`
-        CREATE TABLE IF NOT exists comments (
-            id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-            page_id INTEGER NOT NULL REFERENCES webpages(id) ON DELETE CASCADE,
-            dom_path TEXT,
-            selected_text TEXT,
-            comment_text TEXT NOT NULL,
-            pos_x INTEGER,
-            pos_y INTEGER,
-            author_id TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) 
-    `); */
-
     await pool.query(`
         CREATE TABLE IF NOT exists comments (
             id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -201,11 +177,14 @@ async function initDB() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) 
     `);
-    console.log("Database ready");
 }
 
-initDB().then(() => {
-    // Starts the server
-    //app.listen(port, /* '0.0.0.0', */ () => console.log(`Server is running on port ${port}`));
-    server.listen(port, /* '0.0.0.0', */ () => console.log(`Server is running on port ${port}`));
-});
+initDB()
+    .then(() => {
+        // Starts the server
+        server.listen(port, () => console.log(`Server is running on port ${port}`));
+    })
+    .catch(err => {
+        console.error("Failed to connect to database:", err.message);
+        process.exit(1);
+    });
