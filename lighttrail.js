@@ -770,8 +770,8 @@ LightTrail was developed by Ayaan Modak (GitHub: Iced-code). Learn more at https
 const isMobile = /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
 
 console.log(welcome_message);
+const authorID = getAuthorID();
 if(!isMobile){
-    const authorID = getAuthorID();
     loadComments();
     makeHUD();
 }
