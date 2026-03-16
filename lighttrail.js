@@ -230,7 +230,7 @@ function getAuthorID(){
             id = crypto.randomUUID();
         }
         catch (err){
-            return "test";
+            id = "test";
         }
         localStorage.setItem("lt-author-id", id);
     }
