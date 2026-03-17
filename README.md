@@ -82,8 +82,7 @@ Real-time updates are shared automatically — any comment added or deleted by a
 LightTrail/
 ├── app.js          # Express + WebSocket server
 ├── db.js           # PostgreSQL connection pool
-├── lighttrail.js   # Client-side script (injected into webpages)
-└── .env.example    # Environment variable template
+└── lighttrail.js   # Client-side script (injected into webpages)
 ```
 
 ---
