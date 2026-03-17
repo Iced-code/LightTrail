@@ -100,14 +100,6 @@ Change these to point to your server's address if it is not running locally.
 
 ---
 
-## Notes
-
-- LightTrail is disabled automatically on mobile devices and narrow windows (below 768px).
-- Comments are scoped per page URL, so annotations on one page do not appear on others.
-- Each browser is assigned a random anonymous ID stored in `localStorage`. There is no login system.
-
----
-
 ## Author
 
 Developed by Ayaan Modak — [GitHub](https://github.com/Iced-code)
