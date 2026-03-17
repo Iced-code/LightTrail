@@ -1,4 +1,4 @@
-[](LightTrail.png)
+[logo](/LightTrail.png)
 
 # LightTrail
 
@@ -11,13 +11,6 @@ A lightweight tool for adding collaborative annotations to any webpage. Highligh
 ## How it works
 
 LightTrail is a single JavaScript file injected into a webpage via a `<script>` tag. It connects to a self-hosted Express backend that stores comments in a PostgreSQL database and broadcasts real-time updates over WebSockets.
-
----
-
-## Requirements
-
-- [Node.js](https://nodejs.org/) 18 or later
-- [PostgreSQL](https://www.postgresql.org/) 14 or later
 
 ---
 
@@ -38,15 +31,12 @@ npm install
 
 ### 3. Configure environment variables
 
-```bash
-cp .env.example .env
-```
-
-Open `.env` and fill in your database connection string:
+Create `.env` and fill in your database connection string:
 
 ```
-DATABASE_URL=postgresql://user:password@localhost:5432/lighttrail
-PORT=3000
+POSTGRESQL_PASSWORD=your_password
+HOST=localhost
+BACKEND_PORT=3000
 ```
 
 ### 4. Start the server
@@ -83,8 +73,6 @@ That's it. Refresh the page and a **LightTrail** button will appear in the botto
 Comments are colour-coded: **red** for your own comments, **yellow** for comments from other users.
 
 Real-time updates are shared automatically — any comment added or deleted by another user on the same page will appear instantly without a page refresh.
-
-### **This tool should be removed prior to the website being published.**
 
 ---
 
