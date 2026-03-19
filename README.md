@@ -54,7 +54,10 @@ The server starts at `http://localhost:3000`. The database table is created auto
 Add the following script tag to any HTML page you want to annotate:
 
 ```html
-<script src="http://localhost:3000/lighttrail.js"></script>
+<!-- add before </body> -->
+<script src="http://localhost:3000/lighttrail.js" defer title="LightTrail web dev collaboration tool."></script>
+
+<!-- remove this before publishing your site -->
 ```
 
 Replace `http://localhost:3000` with your server's address if it is hosted elsewhere.

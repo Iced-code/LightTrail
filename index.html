@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LightTrail — Comments for web development</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="static/styles.css">
+
+  <link rel="icon" href="static/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="static/favicon-32x32.png" type="image/png">
+  <link rel="apple-touch-icon" href="static/apple-touch-icon.png">
+  
+  <meta name="apple-mobile-web-app-title" content="LightTrail">
+</head>
+
+<body>
+
+  <nav>
+    <img src="./static/favicon.ico" alt="LightTrail" class="nav-logo">
+    
+    <a href="https://github.com/Iced-Code/LightTrail" class="nav-cta" target="_blank">GitHub</a>
+  </nav>
+
+  <section class="hero">
+    <img src="./static/LightTrail.png" alt="LightTrail" class="hero-logo">
+    <p class="hero-tagline"><em>Google Docs-style comments</em> for web development.<br>Collaborate in real time, right on your website.</p>
+    <div class="hero-actions">
+      <a href="https://github.com/Iced-Code/LightTrail" class="btn-primary" target="_blank">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+        </svg>
+        Get started
+      </a>
+      <a href="#how" class="btn-secondary">How it works →</a>
+    </div>
+  </section>
+
+  <section class="how" id="how">
+    <div class="container">
+      <p class="section-tag">How it works</p>
+      <h2 class="section-title">Up and running in minutes</h2>
+      <p class="section-sub">One script tag on the client. A small Node server on your machine. That's it.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01 —</div>
+          <h3>Highlight</h3>
+          <p>Select any text on the page you want to leave a comment on. A dialog box appears instantly.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02 —</div>
+          <h3>Comment</h3>
+          <p>Enter your requested change, question, or feedback in the dialog box.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03 —</div>
+          <h3>Reposition &amp; save</h3>
+          <p>Drag the comment box to reposition it, then click <strong>Comment</strong> to save it to the database.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">04 —</div>
+          <h3>Review</h3>
+          <p>View and toggle all comments via the LightTrail panel in the bottom-right corner of the page.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="install" id="install">
+    <div class="container">
+      <p class="section-tag">Installation</p>
+      <h2 class="section-title">Get started</h2>
+      <p class="section-sub">Clone the repo, add your Postgres credentials, and run.</p>
+
+      <div class="install-box">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab(event,'quick')">Quick start</button>
+          <button class="tab" onclick="switchTab(event,'inject')">Add to page</button>
+        </div>
+        <div class="tab-panel active" id="tab-quick">
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode('tab-quick')">copy</button>
+            <span class="c"># clone &amp; install</span>
+            <br><span class="k">git</span> clone https://github.com/Iced-Code/LightTrail.git
+            <br><span class="k">cd</span> LightTrail &amp;&amp; npm install
+            <br><br><span class="c"># configure — create .env with your credentials</span>
+            <br><span class="v">POSTGRESQL_PASSWORD</span>=your_password
+            <br><span class="v">HOST</span>=localhost
+            <br><span class="v">BACKEND_PORT</span>=3000
+            <br><br><span class="c"># run</span>
+            <br><span class="k">npm</span> start
+          </div>
+        </div>
+        <div class="tab-panel" id="tab-inject">
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode('tab-inject')">copy</button>
+            <span class="c">&lt;!-- add before &lt;/body&gt; --&gt;</span>
+            <br><span class="p">&lt;script</span> <span class="k">src</span>=<span
+              class="s">"http://localhost:3000/lighttrail.js"</span> <span class="k">defer</span> 
+              <span class="k">title</span>=<span
+              class="s">"LightTrail web dev collaboration tool."</span><span class="p">&gt;&lt;/script&gt;</span>
+            <br><br><span class="c">&lt;!-- remove this before publishing your site --&gt;</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack-pills">
+        <span class="pill"><span class="pill-dot" style="background:#f5c542"></span>Node.js</span>
+        <span class="pill"><span class="pill-dot" style="background:#336791"></span>PostgreSQL</span>
+        <span class="pill"><span class="pill-dot" style="background:#f54242"></span>Express</span>
+        <span class="pill"><span class="pill-dot" style="background:#68b26a"></span>WebSockets</span>
+        <span class="pill"><span class="pill-dot" style="background:#aaa"></span>JavaScript</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="container">
+      <h2 class="section-title">Ready to try it?</h2>
+      <p class="section-sub">Works on any website with a single script tag.</p>
+      <div class="hero-actions" style="justify-content:center; margin-top: 36px;">
+        <a href="https://github.com/Iced-Code/LightTrail" class="btn-primary" target="_blank">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          View on GitHub
+        </a>
+        <a href="#install" class="btn-secondary">Installation guide</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Built by <a href="https://github.com/Iced-Code" target="_blank">Ayaan Modak</a> &nbsp;·&nbsp; 
+      <a href="https://github.com/Iced-Code/LightTrail" target="_blank">GitHub</a> &nbsp;·&nbsp;
+        ☀️
+    </p>
+  </footer>
+
+  <script>
+    function switchTab(e, id) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById('tab-' + id).classList.add('active');
+    }
+    function copyCode(panelId) {
+      const text = document.getElementById(panelId).querySelector('.code-block').innerText.replace('copy\n', '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById(panelId).querySelector('.copy-btn');
+        btn.textContent = 'copied!';
+        setTimeout(() => btn.textContent = 'copy', 2000);
+      });
+    }
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.style.opacity = '1'; e.target.style.transform = 'translateY(0)'; }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.step, .feature').forEach(el => {
+      el.style.opacity = '0'; el.style.transform = 'translateY(12px)';
+      el.style.transition = 'opacity 0.45s ease, transform 0.45s ease';
+      obs.observe(el);
+    });
+  </script>
+
+  <!-- add before </body> -->
+  <script src="http://localhost:3000/lighttrail.js" defer title="LightTrail web dev collaboration tool."></script>
+
+  <!-- remove this before publishing your site -->
+</body>
+
+</html>
