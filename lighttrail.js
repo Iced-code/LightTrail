@@ -29,6 +29,10 @@ let topZIndex = 9000;
         user-select: none;
     }
 
+    .lt-dialog-box * {
+        font-family: monospace;
+    }
+
     .lt-other-user.lt-dialog-box {
         border-bottom: 4px solid #f5c542;
     }
@@ -52,7 +56,7 @@ let topZIndex = 9000;
         resize: none;
     }
 
-    .lt-submit-button {
+    .lt-submit-button, .lt-submit-button button {
         background-color: white;
         color: black;
         padding: 3px 12px;
@@ -60,10 +64,10 @@ let topZIndex = 9000;
 
         transition: background-color 0.2s;
     }
-    .lt-submit-button:hover {
+    .lt-submit-button:hover, .lt-submit-button:hover button {
         background-color: rgb(181, 181, 181);
     }
-    .lt-dialog-input, .lt-submit-button {
+    .lt-dialog-input, .lt-submit-button, .lt-submit-button button {
         font-family: monospace;
     }
 
@@ -79,6 +83,9 @@ let topZIndex = 9000;
         background-color: rgb(181, 181, 181);
     }
 
+    #lt-HUD * {
+        font-family: 'Jost', sans-serif;
+    }
     #lt-HUD {
         font-family: 'Jost', sans-serif;
 
@@ -734,6 +741,8 @@ enhancing and refining the collaborative process.
 LightTrail was developed by Ayaan Modak (GitHub: Iced-code). Learn more at https://iced-code.github.io/LightTrail/.
 
 **Note: This tool must be removed before publishing this website.**
+
+☀️
 `;
 const isMobile = /Mobi|Android|iPhone|iPod|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
 
