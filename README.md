@@ -1,4 +1,4 @@
-<img src="./LightTrail.png" alt="LightTrail logo">
+<img src="./static/LightTrail.png" alt="LightTrail logo">
 
 # LightTrail
 
