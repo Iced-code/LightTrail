@@ -1,6 +1,6 @@
 {
-  "name": "light_trail",
-  "version": "1.0.0",
+  "name": "lighttrail",
+  "version": "1.1.0",
   "description": "<img src=\"LightTrail.png\" alt=\"Screenshot of the project\">",
   "main": "lighttrail.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "url": "git+https://github.com/Iced-code/LightTrail.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Ayaan Modak (Iced-Code)",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Iced-code/LightTrail/issues"
@@ -22,9 +22,10 @@
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "node": "^22.22.1",
-    "nodemon": "^3.1.14",
     "pg": "^8.20.0",
     "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

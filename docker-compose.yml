@@ -1,0 +1,27 @@
+services:
+  app:
+    build: .
+    container_name: lighttrail
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_PORT: 3000
+      POSTGRESQL_HOST: db
+      POSTGRESQL_PASSWORD: postgres
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17-alpine
+    container_name: lighttrail-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: comment_system
+    ports: 
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
